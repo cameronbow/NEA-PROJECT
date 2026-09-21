@@ -1,5 +1,5 @@
 ﻿using Gtk;
-using Pango;
+
 using SDL3;
 
 
@@ -31,6 +31,11 @@ public class Background : Window
 
 public class SelectionBox : Window
 {
+    //creates the actual slider going from 0 to 100 in incriments of 1
+    Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 0, 100, 1);
+
+    //creates the actual slider going from 0 to 100 in incriments of 1
+    Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 100, 1);
     public SelectionBox() : base("Selection Box")
     {
 
@@ -48,8 +53,11 @@ public class SelectionBox : Window
         //adds colour to selction box
         ModifyBg(StateType.Normal, Gray);
 
-        //creates the slider lable
-        Label sliderLabel = new Label("Slider:");
+        //creates the speed slider lable
+        Label SpeedsliderLabel = new Label("Speed:");
+
+        //creates the number of atoms slider lable
+        Label AtomsliderLabel = new Label("# of Atoms:");
 
         //creates "vertical box" but think about it as a virtual box that each smaller component can be placed in
         VBox box = new VBox(false, 10);
@@ -57,19 +65,23 @@ public class SelectionBox : Window
         //sets the size of each virtical box
         box.BorderWidth = 20;
 
-        //creates the actual slider going from 0 to 100 in incriments of 1
-        Gtk.Scale slider = new Gtk.Scale( Orientation.Horizontal,0,100,1);
+        //speed slider inital value
+        speedslider.Value = 50;
 
-        //slider inital value
-        slider.Value = 50;
+        //atom slider inital value
+        atomslider.Value = 50;
 
         //puts the the lable in the first virtical box
-        box.PackStart(sliderLabel, false, false, 0);
+        box.PackStart(SpeedsliderLabel, false, false, 0);
 
         //puts the slider underneath in the second vertical box
-        box.PackStart(slider, false, false, 0);
+        box.PackStart(speedslider, false, false, 0);
 
+        //puts the the lable in the first virtical box
+        box.PackStart(AtomsliderLabel, false, false, 0);
 
+        //puts the slider underneath in the second vertical box
+        box.PackStart(atomslider, false, false, 0);
 
         //creates first option
         RadioButton option1 = new RadioButton("Option 1");
@@ -80,6 +92,13 @@ public class SelectionBox : Window
         //creates third option linking with the first
         RadioButton option3 = new RadioButton(option1, "Option 3");
 
+        //creates start simulation button
+        Button SimualtionStart = new Button("SIMULATION START");
+
+        //links function to when button is clicked
+        SimualtionStart.Clicked += OnButtonClicked;
+
+
         //has the first option selcted by defult
         option1.Active = true;
 
@@ -88,6 +107,7 @@ public class SelectionBox : Window
         box.PackStart(option2, false, false, 0);
         box.PackStart(option3, false, false, 0);
 
+        box.PackStart(SimualtionStart, false, false, 0);
         //adds the virtical boxs to the window
         Add(box);
 
@@ -111,8 +131,21 @@ public class SelectionBox : Window
 
         //shows everything
         ShowAll();
+
+    }
+    public double GetAtomNumber()
+    {
+        double atoms;
+        atoms = atomslider.Value;
+        Console.WriteLine(atoms);
+        return atoms;
+    }
+    private void OnButtonClicked(object sender, EventArgs e)
+    {
+        GetAtomNumber();
     }
 }
+
 public class Simulationbox : Window
 {
     public Simulationbox() : base("Simulation")
@@ -140,34 +173,36 @@ public class Simulationbox : Window
         int panelHeight = 950;
 
         //asign the height of the panel to be the whole length of the users screen
-        SetDefaultSize((scWidth-475), panelHeight);
-        SetSizeRequest((scWidth-475), panelHeight);
+        SetDefaultSize((scWidth - 475), panelHeight);
+        SetSizeRequest((scWidth - 475), panelHeight);
 
         //moving panel to side of screen
-        Move(0, screen.Height-50);
+        Move(0, screen.Height - 50);
 
         ShowAll();
-        
     }
+
 }
+
 partial class Program
 {
     static void Main(string[] args)
     {
+
         Application.Init();
 
         // Create the background window
         Background background = new Background();
 
         // Create the selection window
-        SelectionBox selectionbox = new SelectionBox();
+        SelectionBox selectionBox = new SelectionBox();
 
         // Create the simulation window
         Simulationbox simulation = new Simulationbox();
 
         // Show both windows
         background.Show();
-        selectionbox.Show();
+        selectionBox.Show();
         simulation.Show();
 
         Application.Run();
