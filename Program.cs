@@ -15,8 +15,10 @@ public class Background : Window
 
         //Creates a new colour
         Gdk.Color White = new Gdk.Color();
+
         //assigns hex code to colour
         Gdk.Color.Parse("#FFFFFF", ref White);
+
         //adds colour to Background 
         ModifyBg(StateType.Normal, White);
 
@@ -36,6 +38,7 @@ public class SelectionBox : Window
 
     //creates the actual slider going from 0 to 100 in incriments of 1
     Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 100, 1);
+
     public SelectionBox() : base("Selection Box")
     {
 
@@ -107,7 +110,9 @@ public class SelectionBox : Window
         box.PackStart(option2, false, false, 0);
         box.PackStart(option3, false, false, 0);
 
+        //adds Simulationstart button under radio buttons
         box.PackStart(SimualtionStart, false, false, 0);
+
         //adds the virtical boxs to the window
         Add(box);
 
@@ -133,6 +138,8 @@ public class SelectionBox : Window
         ShowAll();
 
     }
+
+    //creates a function to retrive the number of atoms chosen by the user
     public double GetAtomNumber()
     {
         double atoms;
@@ -140,10 +147,19 @@ public class SelectionBox : Window
         Console.WriteLine(atoms);
         return atoms;
     }
+
+    //creates a function that was linked to earlier in the code for when the start simulation button is clicked
     private void OnButtonClicked(object sender, EventArgs e)
     {
-        GetAtomNumber();
+        //runs the GetAtomNumber function to start the simulation
+        int numberOfAtoms = Convert.ToInt32(GetAtomNumber());
+        StartSimulation(numberOfAtoms);
     }
+    public void StartSimulation(int passedAtoms, )
+    {
+        
+    }
+
 }
 
 public class Simulationbox : Window
@@ -151,7 +167,7 @@ public class Simulationbox : Window
     public Simulationbox() : base("Simulation")
     {
 
-
+        //sets the defult size
         SetDefaultSize(400, 300);
 
 
@@ -200,11 +216,71 @@ partial class Program
         // Create the simulation window
         Simulationbox simulation = new Simulationbox();
 
-        // Show both windows
+        // Show all windows
         background.Show();
         selectionBox.Show();
         simulation.Show();
 
         Application.Run();
+    }
+}
+
+//below i am creating my own linked lists
+
+//creates the node class
+public class Node
+{
+    //the data being stored at that node
+    public int data;
+    
+    //the pointer to the next node
+    public Node next;
+
+   //end node
+    public Node(int data)
+    {
+        this.data = data;
+        this.next = null;
+    }
+    //header and main body
+    public Node(int data, Node next)
+    {
+        this.data = data;
+        this.next = next;
+    }
+}
+
+//creating a class to use the nodes
+public class LinkedList
+{
+    //creating a node head
+    Node head;
+
+    //dtarting with it null
+    public LinkedList()
+    {
+        this.head = null;
+    }
+    //insert into the linked list function
+    public void Insert(int data)
+    {
+        //function creates a new new node with the data being passed
+        Node newNode = new Node(data);
+
+        //If the list has a head just add the item at the end
+        if (head != null)
+        {
+            Node current = this.head;
+            while (current.next != null)
+            {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+        //if this is the first item make it the head
+        else
+        {
+            this.head = newNode;
+        }
     }
 }
