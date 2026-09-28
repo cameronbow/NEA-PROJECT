@@ -1,6 +1,7 @@
 ﻿using Gtk;
 
 using SDL3;
+using System.Xml.Linq;
 
 
 public class Background : Window
@@ -151,16 +152,84 @@ public class SelectionBox : Window
     //creates a function that was linked to earlier in the code for when the start simulation button is clicked
     private void OnButtonClicked(object sender, EventArgs e)
     {
-        //runs the GetAtomNumber function to start the simulation
+        //runs the GetAtomNumber function
         int numberOfAtoms = Convert.ToInt32(GetAtomNumber());
-        StartSimulation(numberOfAtoms);
+        //starts the simulation passing it the amout of atoms and lsit of atom attributes
+        StartSimulation(numberOfAtoms, AtomLists("Uranium235"));
     }
-    public void StartSimulation(int passedAtoms, )
+    public void StartSimulation(int passedAtoms, LinkedList passedAtomtype)
     {
-        
-    }
 
-}
+    }
+    
+    //this method will create all the atom type linked list, pick one and return in
+    public LinkedList AtomLists(string passedAtomname)
+    {
+        LinkedList Uranium235 = new LinkedList();
+
+        // Decay constant in years
+        Uranium235.Insert(1);
+
+        //Decay type unpacked by a seperate method
+        Uranium235.Insert(2);
+
+        //atomic number, for 1 atom specaial caseses
+        Uranium235.Insert(3);
+
+        LinkedList f = new LinkedList();
+        f.Insert(1);
+        f.Insert(2);
+        f.Insert(3);
+        LinkedList g = new LinkedList();
+        g.Insert(1);
+        g.Insert(2);
+        g.Insert(3);
+        
+        //switching basesd on the desisered atom name
+        switch (passedAtomname)
+        {
+            case "Uranium235":
+                {
+                    return Uranium235;
+                }
+            case "f":
+                {
+                    return Uranium235;
+                }
+            case "g":
+                {
+                    return Uranium235;
+                }
+
+        }
+        //null case
+        return null;
+    }
+    
+    //the linkedlist is a list of intigers so thisfunction depacks the decaytype integer into its actual string name
+    public string DepackDecayType(int PassedDecayValue)
+    {
+        switch (PassedDecayValue)
+        {
+            case 1:
+                {
+                    return "Alpha";
+                }
+
+            case 2:
+                {
+                    return "Beta";
+                }
+
+            case 3:
+                {
+                    return "Gamma";
+                }
+
+            //null case
+            default: return null; 
+        }
+    }
 
 public class Simulationbox : Window
 {
@@ -250,37 +319,38 @@ public class Node
     }
 }
 
-//creating a class to use the nodes
-public class LinkedList
-{
-    //creating a node head
-    Node head;
-
-    //dtarting with it null
-    public LinkedList()
+    //creating a class to use the nodes
+    public class LinkedList
     {
-        this.head = null;
-    }
-    //insert into the linked list function
-    public void Insert(int data)
-    {
-        //function creates a new new node with the data being passed
-        Node newNode = new Node(data);
+        //creating a node head
+        Node head;
 
-        //If the list has a head just add the item at the end
-        if (head != null)
+        //starting with it null
+        public LinkedList()
         {
-            Node current = this.head;
-            while (current.next != null)
-            {
-                current = current.next;
-            }
-            current.next = newNode;
+            this.head = null;
         }
-        //if this is the first item make it the head
-        else
+        //insert into the linked list function
+        public void Insert(int data)
         {
-            this.head = newNode;
+            //function creates a new new node with the data being passed
+            Node newNode = new Node(data);
+
+            //If the list has a head just add the item at the end
+            if (head != null)
+            {
+                Node current = this.head;
+                while (current.next != null)
+                {
+                    current = current.next;
+                }
+                current.next = newNode;
+            }
+            //if this is the first item make it the head
+            else
+            {
+                this.head = newNode;
+            }
         }
     }
 }
