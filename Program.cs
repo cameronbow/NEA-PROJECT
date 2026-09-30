@@ -1,6 +1,7 @@
 ﻿using Gtk;
 
 using SDL3;
+using System;
 using System.Xml.Linq;
 
 
@@ -159,7 +160,10 @@ public class SelectionBox : Window
     }
     public void StartSimulation(int passedAtoms, LinkedList passedAtomtype)
     {
-
+        int decayConstant = passedAtomtype.Indexer(0);
+        string decaytype = DepackDecayType(passedAtomtype.Indexer(1));
+        int atomicNumber = passedAtomtype.Indexer(2);
+        
     }
     
     //this method will create all the atom type linked list, pick one and return in
@@ -231,7 +235,7 @@ public class SelectionBox : Window
         }
     }
 
-public class Simulationbox : Window
+    public class Simulationbox : Window
 {
     public Simulationbox() : base("Simulation")
     {
@@ -269,8 +273,8 @@ public class Simulationbox : Window
 
 }
 
-partial class Program
-{
+    partial class Program
+    {
     static void Main(string[] args)
     {
 
@@ -291,33 +295,34 @@ partial class Program
         simulation.Show();
 
         Application.Run();
+
     }
-}
+    }
 
 //below i am creating my own linked lists
 
 //creates the node class
-public class Node
-{
-    //the data being stored at that node
-    public int data;
+    public class Node
+    {
+      //the data being stored at that node
+      public int data;
     
-    //the pointer to the next node
-    public Node next;
+     //the pointer to the next node
+     public Node next;
 
-   //end node
-    public Node(int data)
-    {
-        this.data = data;
-        this.next = null;
+      //end node
+       public Node(int data)
+      {
+          this.data = data;
+          this.next = null;
+      }
+      //header and main body
+      public Node(int data, Node next)
+     {
+         this.data = data;
+         this.next = next;
+        }
     }
-    //header and main body
-    public Node(int data, Node next)
-    {
-        this.data = data;
-        this.next = next;
-    }
-}
 
     //creating a class to use the nodes
     public class LinkedList
@@ -351,6 +356,47 @@ public class Node
             {
                 this.head = newNode;
             }
+        }
+        public int Indexer( int indexNum)
+        {
+            Node current = this.head;
+            if (current == null)
+            {
+                Console.WriteLine("this list is empty");
+                return -1;
+            }
+
+            for (int i = 0; i < indexNum; i++)
+            {
+                    current = current.next;
+                }
+                return current.data;
+        }
+        
+    }
+    class MonteCarloRecursive
+    {
+        static void Main()
+        {
+            int DecayTrials = 1000;
+            Random rng = new Random();
+            double NonDecayed = RunMonteCarloRound(DecayTrials, rng);
+           
+
+        }
+
+        // Recursive Monte Carlo function
+        static int RunMonteCarloRound(int remaining, Random rng)
+        {
+            // Base case
+            if (remaining == 0)
+                return 0;
+
+            // Perform one random trial
+            //REMINDER CODE LOGIC OF RECURSION
+
+            // Recursive call + accumulate
+            return (decayedAtom) + RunMonteCarloRound(remaining - 1, rng);
         }
     }
 }
