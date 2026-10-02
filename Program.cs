@@ -2,7 +2,10 @@
 
 using SDL3;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks.Dataflow;
 using System.Xml.Linq;
+using static SelectionBox;
 
 
 public class Background : Window
@@ -156,20 +159,20 @@ public class SelectionBox : Window
         //runs the GetAtomNumber function
         int numberOfAtoms = Convert.ToInt32(GetAtomNumber());
         //starts the simulation passing it the amout of atoms and lsit of atom attributes
-        StartSimulation(numberOfAtoms, AtomLists("Uranium235"));
+        StartSimulation(numberOfAtoms, GetAtomLists("Uranium235"));
     }
-    public void StartSimulation(int passedAtoms, LinkedList passedAtomtype)
+    public void StartSimulation(int passedAtoms, LinkedList<int> passedAtomtype)
     {
-        int decayConstant = passedAtomtype.Indexer(0);
-        string decaytype = DepackDecayType(passedAtomtype.Indexer(1));
-        int atomicNumber = passedAtomtype.Indexer(2);
+        int decayConstant = passedAtomtype.ListIndexer(0);
+        string decaytype = DepackDecayType(passedAtomtype.ListIndexer(1));
+        int atomicNumber = passedAtomtype.ListIndexer(2);
         
     }
     
     //this method will create all the atom type linked list, pick one and return in
-    public LinkedList AtomLists(string passedAtomname)
+    public LinkedList<int> GetAtomLists(string passedAtomname)
     {
-        LinkedList Uranium235 = new LinkedList();
+        LinkedList<int> Uranium235 = new LinkedList<int>();
 
         // Decay constant in years
         Uranium235.Insert(1);
@@ -180,11 +183,11 @@ public class SelectionBox : Window
         //atomic number, for 1 atom specaial caseses
         Uranium235.Insert(3);
 
-        LinkedList f = new LinkedList();
+        LinkedList<int> f = new LinkedList<int>();
         f.Insert(1);
         f.Insert(2);
         f.Insert(3);
-        LinkedList g = new LinkedList();
+        LinkedList<int>  g = new LinkedList<int>();
         g.Insert(1);
         g.Insert(2);
         g.Insert(3);
@@ -299,25 +302,25 @@ public class SelectionBox : Window
     }
     }
 
-//below i am creating my own linked lists
+//below i am creating my own linked lists using genric type to allow for creating diffretn data type lists
 
 //creates the node class
-    public class Node
+    public class LinkedNode<T>
     {
       //the data being stored at that node
-      public int data;
+      public T data;
     
      //the pointer to the next node
-     public Node next;
+     public LinkedNode<T> next;
 
       //end node
-       public Node(int data)
+       public LinkedNode(T data)
       {
           this.data = data;
           this.next = null;
       }
       //header and main body
-      public Node(int data, Node next)
+      public LinkedNode(T data, LinkedNode<T> next)
      {
          this.data = data;
          this.next = next;
@@ -325,10 +328,10 @@ public class SelectionBox : Window
     }
 
     //creating a class to use the nodes
-    public class LinkedList
+    public class LinkedList<T>
     {
         //creating a node head
-        Node head;
+        public LinkedNode<T> head;
 
         //starting with it null
         public LinkedList()
@@ -336,15 +339,15 @@ public class SelectionBox : Window
             this.head = null;
         }
         //insert into the linked list function
-        public void Insert(int data)
+        public void Insert(T data)
         {
             //function creates a new new node with the data being passed
-            Node newNode = new Node(data);
+            LinkedNode<T> newNode = new LinkedNode<T>(data);
 
             //If the list has a head just add the item at the end
             if (head != null)
             {
-                Node current = this.head;
+                LinkedNode<T> current = this.head;
                 while (current.next != null)
                 {
                     current = current.next;
@@ -357,13 +360,13 @@ public class SelectionBox : Window
                 this.head = newNode;
             }
         }
-        public int Indexer( int indexNum)
+        public T? ListIndexer( int indexNum)
         {
-            Node current = this.head;
+            LinkedNode<T> current = this.head;
             if (current == null)
             {
                 Console.WriteLine("this list is empty");
-                return -1;
+                return default(T);
             }
 
             for (int i = 0; i < indexNum; i++)
@@ -374,29 +377,39 @@ public class SelectionBox : Window
         }
         
     }
-    class MonteCarloRecursive
+    class DecaySimulation
     {
         static void Main()
         {
+            LinkedList<double> unDecayed = new LinkedList<double>();
             int DecayTrials = 1000;
             Random rng = new Random();
             double NonDecayed = RunMonteCarloRound(DecayTrials, rng);
-           
+
+            while (unDecayed.head != null)
+            {
+                unDecayed=RunMonteCarloRound(unDecayed);
+                 sweepList(unDecayed);
+                wait 1;
+            }
+
 
         }
 
         // Recursive Monte Carlo function
-        static int RunMonteCarloRound(int remaining, Random rng)
+        static LinkedList<double> RunMonteCarloRound(LinkedList<double> PassedDecayList)
         {
-            // Base case
-            if (remaining == 0)
-                return 0;
-
-            // Perform one random trial
-            //REMINDER CODE LOGIC OF RECURSION
-
-            // Recursive call + accumulate
-            return (decayedAtom) + RunMonteCarloRound(remaining - 1, rng);
+            LinkedNode<double> CurrentNode = PassedDecayList.head;
+            if (CurrentNode != null)
+            {
+                if (Testdecay())
+                {
+                    BroadcastDecay(CurrentNode);
+                    PassedDecayList.Remove(CurrentNode);
+                    PassedDecayList=RunMonteCarloRound(PassedDecayList);
+                }
+            }
+            return PassedDecayList;
         }
     }
 }
