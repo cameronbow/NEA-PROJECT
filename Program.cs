@@ -145,7 +145,7 @@ public class SelectionBox : Window
     }
 
     //creates a function to retrive the number of atoms chosen by the user
-    public double GetAtomNumber()
+    public  double GetAtomNumber()
     {
         double atoms;
         atoms = atomslider.Value;
@@ -166,7 +166,9 @@ public class SelectionBox : Window
         int decayConstant = passedAtomtype.ListIndexer(0);
         string decaytype = DepackDecayType(passedAtomtype.ListIndexer(1));
         int atomicNumber = passedAtomtype.ListIndexer(2);
-        
+        DecaySimulation.Decaysimulation();
+
+
     }
     
     //this method will create all the atom type linked list, pick one and return in
@@ -210,8 +212,7 @@ public class SelectionBox : Window
 
         }
         //null case
-        return null;
-    }
+        return null;    }
     
     //the linkedlist is a list of intigers so thisfunction depacks the decaytype integer into its actual string name
     public string DepackDecayType(int PassedDecayValue)
@@ -383,17 +384,34 @@ public class SelectionBox : Window
     }
     class DecaySimulation
     {
-        static void Main()
+        public static void Decaysimulation()
         {
+            //initates new slecion box to get the slider value
+            SelectionBox selectionBox = new SelectionBox();
+
+            //gets slider value and assigns to atom number
+            int AtomNumber = Convert.ToInt32(selectionBox.GetAtomNumber());
+
+            //creates a new linked list of doubles to hold the undecayed atoms
             LinkedList<double> unDecayed = new LinkedList<double>();
-            unDecayed = FillList();
+
+            //fills the linked list with the number of atoms
+            unDecayed = FillList(unDecayed, AtomNumber);
+
+            //creates a new random number generator
             Random rng = new Random();
 
-
+            //runs the monte carlo simulation until all atoms have decayed
             while (unDecayed.head != null)
             {
-                unDecayed=RunMonteCarloRound(unDecayed, unDecayed.head);
+
+                //runs the monte carlo simulation round and returns the new list of undecayed atoms
+                unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head);
+
+                //sweeps the list to remove any decayed atoms
                 SweepList(unDecayed);
+
+                //sleeps
                 Thread.Sleep(1000);
             }
 
@@ -425,13 +443,25 @@ public class SelectionBox : Window
         static bool MonteCarloTestDecay()
         {
             if (true)
-                {
+            {
                 return true;
             }
         }
-        static LinkedList<double> FillList()
+        public LinkedList<double> FillList(LinkedList<double> FillingList, int AtomNumber)
         {
-            LinkedList<double> FillingList = new LinkedList<double>();
+           int width = 0;
+            double data = new();
+            width = (int)Math.Floor(Math.Sqrt(AtomNumber));
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < width; y++)
+                    {
+                     data = (1,2);
+                    FillingList.Insert(data);
+                    }
+                }
+            
+
             return FillingList;
         }
         static LinkedList<double> SweepList(LinkedList<double> ListToSweep)
