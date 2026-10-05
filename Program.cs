@@ -360,6 +360,10 @@ public class SelectionBox : Window
                 this.head = newNode;
             }
         }
+        public void Remove(LinkedNode<T> NodeToRemove)
+        {
+            NodeToRemove.data = default(T);
+        }
         public T? ListIndexer( int indexNum)
         {
             LinkedNode<T> current = this.head;
@@ -382,34 +386,58 @@ public class SelectionBox : Window
         static void Main()
         {
             LinkedList<double> unDecayed = new LinkedList<double>();
-            int DecayTrials = 1000;
+            unDecayed = FillList();
             Random rng = new Random();
-            double NonDecayed = RunMonteCarloRound(DecayTrials, rng);
+
 
             while (unDecayed.head != null)
             {
-                unDecayed=RunMonteCarloRound(unDecayed);
-                 sweepList(unDecayed);
-                wait 1;
+                unDecayed=RunMonteCarloRound(unDecayed, unDecayed.head);
+                SweepList(unDecayed);
+                Thread.Sleep(1000);
             }
 
 
         }
 
         // Recursive Monte Carlo function
-        static LinkedList<double> RunMonteCarloRound(LinkedList<double> PassedDecayList)
+        static LinkedList<double> RunMonteCarloRound(LinkedList<double> PassedDecayList, LinkedNode<double> currentNode)
         {
-            LinkedNode<double> CurrentNode = PassedDecayList.head;
-            if (CurrentNode != null)
+
+            if (currentNode != null)
             {
-                if (Testdecay())
+                if (MonteCarloTestDecay())
                 {
-                    BroadcastDecay(CurrentNode);
-                    PassedDecayList.Remove(CurrentNode);
-                    PassedDecayList=RunMonteCarloRound(PassedDecayList);
+                    BroadcastDecay(currentNode);
+                    PassedDecayList.Remove(currentNode);
                 }
+                currentNode = currentNode.next;
+                PassedDecayList = RunMonteCarloRound(PassedDecayList, currentNode);
             }
             return PassedDecayList;
+        }
+
+        static void BroadcastDecay(LinkedNode<double> CurrentNode)
+        {
+
+        }
+
+        static bool MonteCarloTestDecay()
+        {
+            if (true)
+                {
+                return true;
+            }
+        }
+        static LinkedList<double> FillList()
+        {
+            LinkedList<double> FillingList = new LinkedList<double>();
+            return FillingList;
+        }
+        static LinkedList<double> SweepList(LinkedList<double> ListToSweep)
+        {
+
+            return ListToSweep;
         }
     }
 }
