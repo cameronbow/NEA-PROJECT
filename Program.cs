@@ -382,6 +382,81 @@ public class SelectionBox : Window
         }
         
     }
+    public class LinkedQueue<T>
+    {
+        // First element
+        private LinkedNode<T> FrontItem;
+
+        // Last element
+        private LinkedNode<T> LastItem;
+
+        // Number of elements
+        private int Count;
+
+        //creates a clear queue
+        public LinkedQueue()
+        {
+            FrontItem = LastItem = null;
+            Count = 0;
+        }
+        // Add item to the end of the queue
+        public void Enqueue(T item)
+        {
+            LinkedNode<T> Current = new LinkedNode<T>(item);
+
+
+            // if Queue is empty make this item first and last
+            if (LastItem == null) 
+            {
+                FrontItem =  Current;
+                LastItem = Current;
+            }
+            else
+            {
+                //makes the pointer of the previous last item, point to this item
+                LastItem.next = Current;
+
+                //Make the current item the new last item
+                LastItem = Current;
+            }
+
+            //increase the count in the queue
+            Count++;
+        }
+        // Remove element from the queue
+        public T Dequeue()
+        {
+            //takes the front value
+            T value = FrontItem.data;
+
+            //makes the next item the new front item
+            FrontItem = FrontItem.next;
+
+            //if this process empties thelist
+            if (FrontItem == null) 
+                LastItem = null;
+
+            //remove the front item from the count
+            Count--;
+
+            //return the dequeed item
+            return value;
+        }
+
+    }
+    public struct Coordinate
+    {
+        public int x;
+        public int y;
+
+        public Coordinate(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+     
+
+    }
     class DecaySimulation
     {
         public static void Decaysimulation()
@@ -393,7 +468,7 @@ public class SelectionBox : Window
             int AtomNumber = Convert.ToInt32(selectionBox.GetAtomNumber());
 
             //creates a new linked list of doubles to hold the undecayed atoms
-            LinkedList<double> unDecayed = new LinkedList<double>();
+            LinkedList<Coordinate> unDecayed = new LinkedList<Coordinate>();
 
             //fills the linked list with the number of atoms
             unDecayed = FillList(unDecayed, AtomNumber);
@@ -419,7 +494,7 @@ public class SelectionBox : Window
         }
 
         // Recursive Monte Carlo function
-        static LinkedList<double> RunMonteCarloRound(LinkedList<double> PassedDecayList, LinkedNode<double> currentNode)
+        static LinkedList<Coordinate> RunMonteCarloRound(LinkedList<Coordinate> PassedDecayList, LinkedNode<Coordinate> currentNode)
         {
 
             if (currentNode != null)
@@ -435,7 +510,7 @@ public class SelectionBox : Window
             return PassedDecayList;
         }
 
-        static void BroadcastDecay(LinkedNode<double> CurrentNode)
+        static void BroadcastDecay(LinkedNode<Coordinate> CurrentNode)
         {
 
         }
@@ -446,28 +521,63 @@ public class SelectionBox : Window
             {
                 return true;
             }
-        }
-        public LinkedList<double> FillList(LinkedList<double> FillingList, int AtomNumber)
+            return false;
+        }   
+        public static LinkedList<Coordinate> FillList(LinkedList<Coordinate> FillingList, int AtomNumber)
         {
+           // sets width to 0 initally
            int width = 0;
-            double data = new();
+
+
+
+            // width is set to the squre root of the atom total
             width = (int)Math.Floor(Math.Sqrt(AtomNumber));
-                for (int x = 0; x < width; x++)
+
+            // will loop until all atoms are added to list
+                for (int y = 1; y <= (AtomNumber/width); y++)
                 {
-                    for (int y = 0; y < width; y++)
+
+            // loops until width is reached
+                    for (int x = 1; x < width; x++)
                     {
-                     data = (1,2);
+
+                    // delcares data as the cooridnates type Coordinate, a specially created data type
+                    Coordinate data = new(x,y);
+
+                    //inserts coordinate into list
                     FillingList.Insert(data);
                     }
                 }
             
-
+            // returns list when full
             return FillingList;
-        }
-        static LinkedList<double> SweepList(LinkedList<double> ListToSweep)
-        {
 
+
+        }
+         static LinkedList<Coordinate> SweepList(LinkedList<Coordinate> ListToSweep)
+        {
+         LinkedQueue<Coordinate> SweepingQueue = new LinkedQueue<Coordinate>();
+            LinkedNode<Coordinate> CurrentNode = ListToSweep.head;
+           while (CurrentNode.next != null)
+                {
+                if (IsEmpty(CurrentNode) == false)
+                {
+                    SweepingQueue.Enqueue(CurrentNode.data);
+                }
+                while (CurrentNode != null)
+                {
+                    CurrentNode = CurrentNode.next;
+                }
+            }
             return ListToSweep;
+        }
+        public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
+        {
+            if ((testingNode.data.x == 0) && (testingNode.data.y == 0))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
