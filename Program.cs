@@ -532,14 +532,28 @@ public class SelectionBox : Window
 
         }
 
-        static bool MonteCarloTestDecay()
+
+        // tests if an atom decays using monte carlo
+        static bool MonteCarloTestDecay(double decayConstant, double ChangeInTime)
         {
-            if (true)
+            // creates a random number generator
+             Random generator = new Random();
+            // calculates decay chance
+            double decayProbability = 1 - Math.Exp(-decayConstant * ChangeInTime);
+            // generates a random number
+            double randomValue = generator.NextDouble();
+            // checks if the atom decays
+            if (randomValue < decayProbability)
             {
+                // atom decays
                 return true;
             }
-            return false;
-        }   
+            else
+            {
+                // atom does not decay
+                return false;
+            }
+        }
         public static LinkedList<Coordinate> FillList(LinkedList<Coordinate> FillingList, int AtomNumber)
         {
            // sets width to 0 initally
@@ -575,6 +589,7 @@ public class SelectionBox : Window
         {
          LinkedQueue<Coordinate> SweepingQueue = new LinkedQueue<Coordinate>();
             LinkedNode<Coordinate> CurrentNode = ListToSweep.head;
+            LinkedList < Coordinate > returnList = new LinkedList<Coordinate>();
            while (CurrentNode != null)
            {
                 if (IsEmpty(CurrentNode) == false)
@@ -585,9 +600,9 @@ public class SelectionBox : Window
             }
            for (int i = 0; i > SweepingQueue.count(); i++)
             {
-                ListToSweep.Insert(SweepingQueue.Dequeue());
+                returnList.Insert(SweepingQueue.Dequeue());
             }
-                return ListToSweep;
+                return returnList;
         }
         public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
         {
