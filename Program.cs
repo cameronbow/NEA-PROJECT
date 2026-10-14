@@ -361,9 +361,10 @@ public class SelectionBox : Window
                 this.head = newNode;
             }
         }
-        public void Remove(LinkedNode<T> NodeToRemove)
+        public void RemoveCorr(LinkedNode<Coordinate> NodeToRemove)
         {
-            NodeToRemove.data = default(T);
+            NodeToRemove.data.x = 0;
+            NodeToRemove.data.y = 0;
         }
         public T? ListIndexer( int indexNum)
         {
@@ -380,7 +381,16 @@ public class SelectionBox : Window
                 }
                 return current.data;
         }
-        
+        public void DisplayLL(LinkedList<Coordinate> DisplayList)
+        {
+            LinkedNode<Coordinate> CurrentNode = DisplayList.head;
+            while (CurrentNode != null)
+            {
+                Console.WriteLine(CurrentNode.data.x + " " + CurrentNode.data.y);
+
+                CurrentNode = CurrentNode.next;
+                }
+        }
     }
     public class LinkedQueue<T>
     {
@@ -443,6 +453,12 @@ public class SelectionBox : Window
             return value;
         }
 
+        public int count()
+        {
+            return Count;
+        }
+
+
     }
     public struct Coordinate
     {
@@ -484,7 +500,7 @@ public class SelectionBox : Window
                 unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head);
 
                 //sweeps the list to remove any decayed atoms
-                SweepList(unDecayed);
+                unDecayed=SweepList(unDecayed);
 
                 //sleeps
                 Thread.Sleep(1000);
@@ -496,16 +512,17 @@ public class SelectionBox : Window
         // Recursive Monte Carlo function
         static LinkedList<Coordinate> RunMonteCarloRound(LinkedList<Coordinate> PassedDecayList, LinkedNode<Coordinate> currentNode)
         {
-
+            PassedDecayList.DisplayLL(PassedDecayList);
             if (currentNode != null)
             {
                 if (MonteCarloTestDecay())
                 {
                     BroadcastDecay(currentNode);
-                    PassedDecayList.Remove(currentNode);
+                    PassedDecayList.RemoveCorr(currentNode);
                 }
                 currentNode = currentNode.next;
                 PassedDecayList = RunMonteCarloRound(PassedDecayList, currentNode);
+                
             }
             return PassedDecayList;
         }
@@ -534,11 +551,11 @@ public class SelectionBox : Window
             width = (int)Math.Floor(Math.Sqrt(AtomNumber));
 
             // will loop until all atoms are added to list
-                for (int y = 1; y <= (AtomNumber/width); y++)
+                for (int x = 1; x <= (AtomNumber/width); x++)
                 {
 
             // loops until width is reached
-                    for (int x = 1; x < width; x++)
+                    for (int y = 1; y < width; y++)
                     {
 
                     // delcares data as the cooridnates type Coordinate, a specially created data type
@@ -558,18 +575,19 @@ public class SelectionBox : Window
         {
          LinkedQueue<Coordinate> SweepingQueue = new LinkedQueue<Coordinate>();
             LinkedNode<Coordinate> CurrentNode = ListToSweep.head;
-           while (CurrentNode.next != null)
-                {
+           while (CurrentNode != null)
+           {
                 if (IsEmpty(CurrentNode) == false)
                 {
                     SweepingQueue.Enqueue(CurrentNode.data);
                 }
-                while (CurrentNode != null)
-                {
                     CurrentNode = CurrentNode.next;
-                }
             }
-            return ListToSweep;
+           for (int i = 0; i > SweepingQueue.count(); i++)
+            {
+                ListToSweep.Insert(SweepingQueue.Dequeue());
+            }
+                return ListToSweep;
         }
         public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
         {
