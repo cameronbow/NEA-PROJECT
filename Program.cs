@@ -1,7 +1,13 @@
-﻿using Gtk;
-
-
-public class Background : Window
+﻿
+using Cairo;
+using Gdk;
+using Gtk;
+using Pango;
+using System;
+using System.Reflection.Emit;
+using static SelectionBox;
+using static SelectionBox.Coordinate;
+public class Background : Gtk.Window
 {
     public Background() : base("Background")
     {
@@ -29,13 +35,13 @@ public class Background : Window
 
 
 
-public class SelectionBox : Window
+public class SelectionBox : Gtk.Window
 {
-    //creates the actual slider going from 0 to 100 in incriments of 1
-    Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 1, 100, 1);
 
-    //creates the actual slider going from 0 to 100 in incriments of 1
-    Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 100, 1);
+    Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 1, 1000, 1);
+
+
+    Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 100000, 1);
 
     // Add these fields to the SelectionBox class to fix CS0117
     private RadioButton option1;
@@ -57,15 +63,19 @@ public class SelectionBox : Window
         Gdk.Color.Parse("#808080", ref Gray);
 
         //adds colour to selction box
-        ModifyBg(StateType.Normal, Gray);
+        //ModifyBg(StateType.Normal, Gray);
 
         //creates the speed slider lable
-        Label SpeedsliderLabel = new Label("Speed:");
-        SpeedsliderLabel.SetSizeRequest(100, -1); // Set a fixed size for the label
+        Gtk.Label SpeedsliderLabel = new Gtk.Label("Speed:");
+
+        // Set a fixed size for the label
+        SpeedsliderLabel.SetSizeRequest(100, -1);
 
         //creates the number of atoms slider lable
-        Label AtomsliderLabel = new Label("# of Atoms:");
-        AtomsliderLabel.SetSizeRequest(100, -1); // Set a fixed size for the label
+        Gtk.Label AtomsliderLabel = new Gtk.Label("# of Atoms:");
+
+        // Set a fixed size for the label
+        AtomsliderLabel.SetSizeRequest(100, -1);
 
         //creates "vertical box" but think about it as a virtual box that each smaller component can be placed in
         VBox box = new VBox(false, 10);
@@ -168,6 +178,7 @@ public class SelectionBox : Window
             Console.WriteLine("No option selected");
         return null;
     }
+
     //creates a function to retrive the number of atoms chosen by the user
     public double GetAtomNumber()
     {
@@ -298,7 +309,7 @@ public class SelectionBox : Window
         }
     }
 
-    public class Simulationbox : Window
+    public class Simulationbox : Gtk.Window
     {
         public Simulationbox() : base("Simulation")
         {
@@ -329,6 +340,15 @@ public class SelectionBox : Window
 
             //moving panel to side of screen
             Move(0, 0);
+
+            //creates the drawing area for the simulation
+            Gtk.DrawingArea drawingArea = new Gtk.DrawingArea();
+
+            //adds the drawing area to the simulation window
+            Add(drawingArea);
+
+            //connects the drawing area to the simulation
+            DecaySimulation.SetDrawingArea(drawingArea);
 
             ShowAll();
         }
@@ -421,9 +441,16 @@ public class SelectionBox : Window
         }
         public void RemoveCorrd(LinkedNode<Coordinate> NodeToRemove)
         {
-            NodeToRemove.data.x = 0;
-            NodeToRemove.data.y = 0;
+            //gets the coordinates and attributes of the atom
+            Coordinate CurrentCoord = NodeToRemove.data;
+
+            //changes the atom to decayed
+            CurrentCoord.decayed = true;
+
+            //updates the data stored in the node
+            NodeToRemove.data = CurrentCoord;
         }
+
         public int Length(LinkedList<Coordinate> MeasuringList)
         {
             int length = 0;
@@ -536,21 +563,53 @@ public class SelectionBox : Window
         public int x;
         public int y;
 
-        public Coordinate(int x, int y)
+        public int id;
+        public bool decayed;
+        public Coordinate(int xpass, int ypass, int idpass)
         {
-            this.x = x;
-            this.y = y;
+            this.x = xpass;
+            this.y = ypass;
+            this.decayed = false;
+            this.id = idpass;
         }
+        public class DecayParticle
+        {
+            //stores the coordinates of the particle
+            public float x;
+            public float y;
 
+            //stores how much the particle moves each update
+            public float speedX;
+            public float speedY;
+
+            //creates a new particle
+            public DecayParticle(float x, float y)
+            {
+                //sets the starting coordinates
+                this.x = x;
+                this.y = y;
+
+                //sets the direction the particle travels
+                speedX = 2;
+                speedY = -2;
+            }
+        }
 
     }
     static class DecaySimulation
     {
+        //stores the GTK drawing area and the atoms displayed on it
+        static Gtk.DrawingArea drawingArea;
+        static LinkedList<Coordinate> drawingAtoms;
+        static bool drawingTimerRunning = false;
         static Random generator = new Random();
+
+        //creates a linked list to store all the particles released by decay
+        static LinkedList<DecayParticle> DecayedParticels = new LinkedList<DecayParticle>();
         static bool simulationRunning = false;
         public static void Decaysimulation(int AtomNumber, double decayConstant, double deltaTime)
         {
-            //how many years pass each round of the simulation, THIS NEEEEEEEEEEEEEEDS TO BE SET TO BY TIME SILDER VALUE
+
 
 
             //creates a new linked list of coordinates to hold the undecayed atoms
@@ -559,16 +618,38 @@ public class SelectionBox : Window
             //fills the linked list with the number of atoms
             unDecayed = FillList(unDecayed, AtomNumber);
 
+            //creates a list to store every atom for drawing
+            LinkedList<Coordinate> allAtoms = new LinkedList<Coordinate>();
+
+            //copies all the atoms into the drawing list
+            LinkedNode<Coordinate> CurrentNode = unDecayed.head;
+
+            while (CurrentNode != null)
+            {
+                allAtoms.Insert(CurrentNode.data);
+                CurrentNode = CurrentNode.next;
+            }
+
             //runs the monte carlo simulation until all atoms have decayed
             if (simulationRunning || AtomNumber <= 0 || deltaTime <= 0)
                 return;
             simulationRunning = true;
+
+            //passes the full atom list to the drawing area
+            drawingAtoms = allAtoms;
+
+            //starts the drawing timer
+            StartDrawing();
+
             GLib.Timeout.Add(1000, delegate
             {
                 Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
                 unDecayed.DisplayLL(unDecayed);
                 //runs the monte carlo simulation round and returns the new list of undecayed atoms
                 unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head, decayConstant, deltaTime);
+
+                //updates the drawing list with decayed atoms
+                UpdateDrawingList(allAtoms, unDecayed);
 
                 //sweeps the list to remove any decayed atoms
                 unDecayed = SweepList(unDecayed);
@@ -578,7 +659,8 @@ public class SelectionBox : Window
                 if (AtomNumber == 0)
                     simulationRunning = false;
                 return AtomNumber > 0;
-            });
+            }
+            );
         }
 
         // Recursive Monte Carlo function
@@ -602,12 +684,89 @@ public class SelectionBox : Window
             }
             return PassedDecayList;
         }
+        static void UpdateDrawingList(
+    LinkedList<Coordinate> allAtoms,
+    LinkedList<Coordinate> unDecayed)
+        {
+            //starts at the head of the undecayed list
+            LinkedNode<Coordinate> CurrentNode = unDecayed.head;
 
+            //loops through every atom in the undecayed list
+            while (CurrentNode != null)
+            {
+                //checks if the atom has decayed
+                if (CurrentNode.data.decayed == true)
+                {
+                    //starts at the head of the drawing list
+                    LinkedNode<Coordinate> DrawingNode = allAtoms.head;
+
+                    //loops through the drawing list
+                    while (DrawingNode != null)
+                    {
+                        //checks if the atom IDs match
+                        if (DrawingNode.data.id == CurrentNode.data.id)
+                        {
+                            //gets the coordinates and attributes of the atom
+                            Coordinate CurrentCoord = DrawingNode.data;
+
+                            //marks the atom as decayed
+                            CurrentCoord.decayed = true;
+
+                            //updates the atom in the drawing list
+                            DrawingNode.data = CurrentCoord;
+                        }
+
+                        //moves to the next atom in the drawing list
+                        DrawingNode = DrawingNode.next;
+                    }
+                }
+
+                //moves to the next atom in the undecayed list
+                CurrentNode = CurrentNode.next;
+            }
+        }
         static void BroadcastDecay(LinkedNode<Coordinate> CurrentNode)
         {
-            //still need to add this
-        }
+            //gets the coordinates of the atom that has decayed
+            Coordinate CurrentCoord = CurrentNode.data;
 
+            //creates a new particle at the position of the decayed atom
+            DecayParticle NewParticle = new DecayParticle(
+                CurrentCoord.x * 15,
+                CurrentCoord.y * 15
+            );
+
+            //adds the new particle to the linked list
+            DecayedParticels.Insert(NewParticle);
+        }
+        public static void DrawDecayParticles(Cairo.Context cr)
+        {
+            //creates a node starting at the head of the Decayed particles list
+            LinkedNode<DecayParticle> CurrentNode = DecayedParticels.head;
+
+            //sets the colour of decayed particles to yellow
+            cr.SetSourceRGB(1, 1, 0);
+
+            //loops through every decayed particle
+            while (CurrentNode != null)
+            {
+                //gets the current particle
+                DecayParticle CurrentParticle = CurrentNode.data;
+
+                //changes the coordinates to move the particle
+                CurrentParticle.x = CurrentParticle.x + CurrentParticle.speedX;
+                CurrentParticle.y = CurrentParticle.y + CurrentParticle.speedY;
+
+                //creates a rectangle at the particles new coordinates
+                cr.Rectangle(CurrentParticle.x, CurrentParticle.y, 4, 4);
+
+                //draws the decayed particle
+                cr.Fill();
+
+                //moves to the next particle in the list
+                CurrentNode = CurrentNode.next;
+            }
+        }
 
         // tests if an atom decays using monte carlo
         static bool MonteCarloTestDecay(double decayConstant, double ChangeInTime)
@@ -615,7 +774,7 @@ public class SelectionBox : Window
             // calculates decay chance
             double decayProbability = 1 - Math.Exp(-decayConstant * ChangeInTime);
 
-            // generates a random number
+            // generates a random numberq
             double randomValue = generator.NextDouble();
 
             // checks if the atom decays
@@ -647,7 +806,7 @@ public class SelectionBox : Window
 
             for (int i = 0; i < AtomNumber; i++)
             {
-                Coordinate data = new Coordinate((i % width) + 1, (i / width) + 1);
+                Coordinate data = new Coordinate((i % width) + 1, (i / width) + 1, i);
                 FillingList.Insert(data);
             }
 
@@ -658,34 +817,132 @@ public class SelectionBox : Window
         }
         static LinkedList<Coordinate> SweepList(LinkedList<Coordinate> ListToSweep)
         {
-
+            //creates a queue to temporarily store undecayed atoms
             LinkedQueue<Coordinate> SweepingQueue = new LinkedQueue<Coordinate>();
+
+            //starts at the head of the list
             LinkedNode<Coordinate> CurrentNode = ListToSweep.head;
+
+            //creates a new linked list to return
             LinkedList<Coordinate> returnList = new LinkedList<Coordinate>();
+
+            //gets the length of the list
             int lengthOfList = ListToSweep.Length(ListToSweep);
             int count = 0;
+
+            //loops through every atom in the list
             while (count < lengthOfList)
             {
+                //checks if the atom has not decayed
                 if (IsEmpty(CurrentNode) == false)
                 {
+                    //adds the undecayed atom to the queue
                     SweepingQueue.Enqueue(CurrentNode.data);
                 }
+
+                //moves to the next atom
                 CurrentNode = CurrentNode.next;
                 count++;
-            }
-            while (SweepingQueue.count() > 0)
-            {
-                returnList.Insert(SweepingQueue.Dequeue());
+
+
+                //loops until the queue is empty
+                while (SweepingQueue.count() > 0)
+                {
+                    //removes the first item from the queue and adds it to the new list
+                    returnList.Insert(SweepingQueue.Dequeue());
+                }
             }
             return returnList;
         }
-        public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
-        {
-            if ((testingNode.data.x == 0) && (testingNode.data.y == 0))
-            {
-                return true;
-            }
-            return false;
-        }
+public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
+{
+    //checks if the atom has decayed
+    if (testingNode.data.decayed == true)
+    {
+        return true;
+    }
+
+    return false;
+}
+public static void SetDrawingArea(Gtk.DrawingArea passedDrawingArea)
+{
+    //stores the drawing area from the simulation window
+    drawingArea = passedDrawingArea;
+
+    //links the drawing function to the drawing area
+    drawingArea.Drawn += OnDrawing;
+}
+
+static void OnDrawing(object sender, Gtk.DrawnArgs args)
+{
+    //draws the atoms when GTK updates the drawing area
+    if (drawingAtoms != null)
+    {
+        DrawPartic(args.Cr, drawingAtoms);
     }
 }
+
+public static void StartDrawing()
+{
+    //checks if the drawing timer is already running
+    if (drawingTimerRunning == true)
+        return;
+
+    drawingTimerRunning = true;
+
+    //updates the drawing area approximately 60 times per second
+    GLib.Timeout.Add(16, delegate
+    {
+        //requests GTK to draw the next frame
+        if (drawingArea != null)
+            drawingArea.QueueDraw();
+
+        //keeps the drawing timer running
+        return true;
+    });
+}
+
+public static void DrawPartic(Cairo.Context cr, LinkedList<Coordinate> unDecayed)
+{
+    //sets the background colour to black
+    cr.SetSourceRGB(0, 0, 0);
+    cr.Paint();
+
+    //creates a node starting at the head of the list
+    LinkedNode<Coordinate> CurrentNode = unDecayed.head;
+
+    //loops through each atom in the list
+    while (CurrentNode != null)
+    {
+        //gets the coordinates of the current atom
+        Coordinate CurrentCoord = CurrentNode.data;
+
+        //checks if the atom has decayed
+        if (CurrentCoord.decayed == true)
+        {
+            //sets the colour to red
+            cr.SetSourceRGB(1, 0, 0);
+        }
+        else
+        {
+            //sets the colour to blue
+            cr.SetSourceRGB(0, 0, 1);
+        }
+
+        //creates a rectangle at the atoms coordinates
+        cr.Rectangle(CurrentCoord.x * 15, CurrentCoord.y * 15, 8, 8);
+
+        //draws the atom
+        cr.Fill();
+
+        //moves to the next atom in the list
+        CurrentNode = CurrentNode.next;
+    }
+
+    //draws all the particles released by decay
+    DrawDecayParticles(cr);
+}
+    }
+
+}
+
