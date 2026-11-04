@@ -41,7 +41,7 @@ public class SelectionBox : Gtk.Window
     Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 1, 1000, 1);
 
 
-    Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 100000, 1);
+    Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 10000, 1);
 
     // Add these fields to the SelectionBox class to fix CS0117
     private RadioButton option1;
@@ -348,7 +348,7 @@ public class SelectionBox : Gtk.Window
             Add(drawingArea);
 
             //connects the drawing area to the simulation
-            DecaySimulation.SetDrawingArea(drawingArea);
+            DecaySimulation.DrawingArea(drawingArea);
 
             ShowAll();
         }
@@ -578,9 +578,12 @@ public class SelectionBox : Gtk.Window
             public float x;
             public float y;
 
-            //stores how much the particle moves each update
+            //stores how much the particle moves
             public float speedX;
             public float speedY;
+
+            //random number generator
+            static Random random = new Random();
 
             //creates a new particle
             public DecayParticle(float x, float y)
@@ -589,9 +592,15 @@ public class SelectionBox : Gtk.Window
                 this.x = x;
                 this.y = y;
 
-                //sets the direction the particle travels
-                speedX = 2;
-                speedY = -2;
+                //generates a random angle
+                double angle = random.NextDouble() * 2 * Math.PI;
+
+                //sets the speed of the particle
+                float speed = 3;
+
+                //calculates the movement
+                speedX = (float)(Math.Cos(angle) * speed);
+                speedY = (float)(Math.Sin(angle) * speed);
             }
         }
 
@@ -739,7 +748,7 @@ public class SelectionBox : Gtk.Window
             //adds the new particle to the linked list
             DecayedParticels.Insert(NewParticle);
         }
-        public static void DrawDecayParticles(Cairo.Context cr)
+        public static void DrawDecay(Cairo.Context cr)
         {
             //creates a node starting at the head of the Decayed particles list
             LinkedNode<DecayParticle> CurrentNode = DecayedParticels.head;
@@ -864,19 +873,19 @@ public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
 
     return false;
 }
-public static void SetDrawingArea(Gtk.DrawingArea passedDrawingArea)
+public static void DrawingArea(Gtk.DrawingArea passedDrawingArea)
 {
     //stores the drawing area from the simulation window
     drawingArea = passedDrawingArea;
 
     //links the drawing function to the drawing area
-    drawingArea.Drawn += OnDrawing;
+    drawingArea.Drawn += Draw;
 }
 
-static void OnDrawing(object sender, Gtk.DrawnArgs args)
+static void Draw(object sender, Gtk.DrawnArgs args)
 {
-    //draws the atoms when GTK updates the drawing area
-    if (drawingAtoms != null)
+            //i dont know why this is needed but it is
+            if (drawingAtoms != null)
     {
         DrawPartic(args.Cr, drawingAtoms);
     }
@@ -940,7 +949,7 @@ public static void DrawPartic(Cairo.Context cr, LinkedList<Coordinate> unDecayed
     }
 
     //draws all the particles released by decay
-    DrawDecayParticles(cr);
+    DrawDecay(cr);
 }
     }
 
