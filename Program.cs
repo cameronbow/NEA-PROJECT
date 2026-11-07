@@ -30,11 +30,6 @@ public class Background : Gtk.Window
     }
 }
 
-
-
-
-
-
 public class SelectionBox : Gtk.Window
 {
 
@@ -50,11 +45,7 @@ public class SelectionBox : Gtk.Window
 
     public SelectionBox() : base("Selection Box")
     {
-
-
-
         SetDefaultSize(400, 300);
-
 
         //Creates a new colour
         Gdk.Color Gray = new Gdk.Color();
@@ -62,44 +53,91 @@ public class SelectionBox : Gtk.Window
         //assigns hex code to colour
         Gdk.Color.Parse("#808080", ref Gray);
 
-        //adds colour to selction box
+        //adds colour to selection box
         //ModifyBg(StateType.Normal, Gray);
 
-        //creates the speed slider lable
-        Gtk.Label SpeedsliderLabel = new Gtk.Label("Speed:");
+        //creates the speed slider label
+        Gtk.Label SpeedsliderLabel = new Gtk.Label("Speed (time):");
 
         // Set a fixed size for the label
         SpeedsliderLabel.SetSizeRequest(100, -1);
+        SpeedsliderLabel.Xalign = 0;
 
-        //creates the number of atoms slider lable
-        Gtk.Label AtomsliderLabel = new Gtk.Label("# of Atoms:");
+        //creates the number of atoms slider label
+        Gtk.Label AtomsliderLabel = new Gtk.Label("# of Atoms (atomnum):");
 
         // Set a fixed size for the label
         AtomsliderLabel.SetSizeRequest(100, -1);
+        AtomsliderLabel.Xalign = 0;
 
-        //creates "vertical box" but think about it as a virtual box that each smaller component can be placed in
-        VBox box = new VBox(false, 10);
+        //creates vertical box for components
+        VBox box = new VBox(false, 15);
 
-        //sets the size of each virtical box
+        //sets the size of the vertical box
         box.BorderWidth = 20;
 
-        //speed slider inital value
+        //speed slider initial value
         speedslider.Value = 50;
 
-        //atom slider inital value
+        //atom slider initial value
         atomslider.Value = 50;
 
-        //puts the the lable in the first virtical box
-        box.PackStart(SpeedsliderLabel, false, false, 0);
+        //creates a frame for the simulation controls
+        Frame ControlFrame = new Frame("Simulation Settings");
 
-        //puts the slider underneath in the second vertical box
-        box.PackStart(speedslider, false, false, 0);
+        //creates a vertical box for the sliders
+        VBox ControlBox = new VBox(false, 10);
 
-        //puts the the lable in the first virtical box
-        box.PackStart(AtomsliderLabel, false, false, 0);
+        //creates a drop-down explanation for time
+        Gtk.Expander TimedropDown = new Gtk.Expander("What does time do?");
 
-        //puts the slider underneath in the second vertical box
-        box.PackStart(atomslider, false, false, 0);
+        //creates the time explanation text
+        Gtk.Label TimeDropDownText = new Gtk.Label("in years, how quickly the simulation progresses. ");
+
+        //allows the explanation text to wrap
+        TimeDropDownText.LineWrap = true;
+
+        //adds the explanation text to the drop-down
+        TimedropDown.Add(TimeDropDownText);
+
+        //creates a drop-down explanation for atomnum
+        Gtk.Expander AtomsDropDOwn = new Gtk.Expander("What does atomnum mean?");
+
+        //creates the atomnum explanation text
+        Gtk.Label AtomDropDOwnText = new Gtk.Label("Controls the number of radioactive atoms ");
+
+        //allows the explanation text to wrap
+        AtomDropDOwnText.LineWrap = true;
+
+        //adds the explanation text to the drop-down
+        AtomsDropDOwn.Add(AtomDropDOwnText);
+
+        //puts the speed slider label in the box
+        ControlBox.PackStart(SpeedsliderLabel, false, false, 0);
+
+        //puts the speed slider underneath the label
+        ControlBox.PackStart(speedslider, false, false, 0);
+
+        //adds the time explanation drop-down
+        ControlBox.PackStart(TimedropDown, false, false, 0);
+
+        //puts the atom slider label in the box
+        ControlBox.PackStart(AtomsliderLabel, false, false, 0);
+
+        //puts the atom slider underneath the label
+        ControlBox.PackStart(atomslider, false, false, 0);
+
+        //adds the atomnum explanation drop-down
+        ControlBox.PackStart(AtomsDropDOwn, false, false, 0);
+
+        //adds the controls to the frame
+        ControlFrame.Add(ControlBox);
+
+        //creates a frame for the isotope selection
+        Frame IsotopeFrame = new Frame("Radioactive Isotope");
+
+        //creates a vertical box for the radio buttons
+        VBox IsotopeBox = new VBox(false, 10);
 
         // creates first option
         option1 = new RadioButton("Uranium235");
@@ -110,39 +148,47 @@ public class SelectionBox : Gtk.Window
         // creates third option linking with the first
         option3 = new RadioButton(option1, "Radon222");
 
+        //has the first option selected by default
+        option1.Active = true;
+
+        //puts all buttons under the isotope label
+        IsotopeBox.PackStart(option1, false, false, 0);
+        IsotopeBox.PackStart(option2, false, false, 0);
+        IsotopeBox.PackStart(option3, false, false, 0);
+
+        //adds radio buttons to the frame
+        IsotopeFrame.Add(IsotopeBox);
+
         //creates start simulation button
         Button SimualtionStart = new Button("SIMULATION START");
 
         //links function to when button is clicked
         SimualtionStart.Clicked += OnButtonClicked;
 
+        //sets the size of the start button
+        SimualtionStart.SetSizeRequest(-1, 45);
 
-        //has the first option selcted by defult
-        option1.Active = true;
+        //puts the controls frame in the main box
+        box.PackStart(ControlFrame, false, false, 0);
 
-        //puts all buttons under lable and slider and then in order
-        box.PackStart(option1, false, false, 0);
-        box.PackStart(option2, false, false, 0);
-        box.PackStart(option3, false, false, 0);
+        //puts the isotope frame underneath the controls
+        box.PackStart(IsotopeFrame, false, false, 0);
 
-        //adds Simulationstart button under radio buttons
+        //adds SimulationStart button underneath radio buttons
         box.PackStart(SimualtionStart, false, false, 0);
 
-        //adds the virtical boxs to the window
+        //adds the vertical box to the window
         Add(box);
 
-
-
-        // Get the screen size and asign values to variables
+        // Get the screen size and assign values to variables
         Gdk.Screen screen = Gdk.Screen.Default;
         int scWidth = screen.Width;
         int scHeight = screen.Height;
 
-        //asign the thickness to be 450 pixels
+        //assign the thickness to be 450 pixels
         int panelWidth = 450;
 
-
-        //asign the height of the panel to be the whole length of the users screen
+        //assign the height of the panel to be the whole length of the user's screen
         SetDefaultSize(panelWidth, scHeight);
         SetSizeRequest(panelWidth, scHeight);
 
@@ -151,7 +197,6 @@ public class SelectionBox : Gtk.Window
 
         //shows everything
         ShowAll();
-
 
     }
 
