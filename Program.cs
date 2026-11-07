@@ -692,26 +692,42 @@ public class SelectionBox : Gtk.Window
             //starts the drawing timer
             StartDrawing();
 
-            GLib.Timeout.Add(1000, delegate
+            //runs the simulation tick and stores the result
+            bool simulationTickResult = SimulationTick(unDecayed, decayConstant, deltaTime, allAtoms, AtomNumber);
+
+            //sets a timer to run the simulation tick every second, () => made it work
+            GLib.Timeout.Add(1000, () => simulationTickResult);
+            
+            
+        }
+        static bool SimulationTick(LinkedList<Coordinate> unDecayed, double decayConstant, double deltaTime, LinkedList<Coordinate> allAtoms, int AtomNumber)
+        {
+            Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
+
+            unDecayed.DisplayLL(unDecayed);
+
+            //runs the monte carlo simulation round
+            //and returns the new list of undecayed atoms
+            unDecayed = RunMonteCarloRound(unDecayed,unDecayed.head,decayConstant,deltaTime);
+
+            //updates the drawing list with decayed atoms
+            UpdateDrawingList(allAtoms, unDecayed);
+
+            //sweeps the list to remove any decayed atoms
+            unDecayed = SweepList(unDecayed);
+
+            AtomNumber = unDecayed.Length(unDecayed);
+
+            unDecayed.DisplayLL(unDecayed);
+
+            //stops the simulation when no atoms remain
+            if (AtomNumber == 0)
             {
-                Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
-                unDecayed.DisplayLL(unDecayed);
-                //runs the monte carlo simulation round and returns the new list of undecayed atoms
-                unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head, decayConstant, deltaTime);
-
-                //updates the drawing list with decayed atoms
-                UpdateDrawingList(allAtoms, unDecayed);
-
-                //sweeps the list to remove any decayed atoms
-                unDecayed = SweepList(unDecayed);
-                AtomNumber = unDecayed.Length(unDecayed);
-
-                unDecayed.DisplayLL(unDecayed);
-                if (AtomNumber == 0)
-                    simulationRunning = false;
-                return AtomNumber > 0;
+                simulationRunning = false;
+                return false;
             }
-            );
+
+            return true;
         }
 
         // Recursive Monte Carlo function
