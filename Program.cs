@@ -273,60 +273,136 @@ public class SelectionBox : Gtk.Window
         //creates the Uranium235 linked list
         LinkedList<double> Uranium235 = new LinkedList<double>();
 
-        //decay constant in years, worked out from the half life of 703.8 million years
+        //decay constant in years
         Uranium235.Insert(Math.Log(2) / 703800000.0);
-
-        //decay type unpacked by a seperate method, 1 is alpha
+        //decay type, 1 is alpha
         Uranium235.Insert(1);
-
-        //atomic number, for 1 atom special cases
-        Uranium235.Insert(92);
-
-
-        //creates the Carbon14 linked list
-        LinkedList<double> Carbon14 = new LinkedList<double>();
-
-        //decay constant in years, half life is 5730 years
-        // Carbon14.Insert(Math.Log(2) / 5730.0);
-        Carbon14.Insert(Math.Log(2) / 5730.0);
-        //decay type, 2 is beta
-        Carbon14.Insert(2);
-
         //atomic number
-        Carbon14.Insert(6);
+        Uranium235.Insert(92);
 
 
         //creates the Radon222 linked list
         LinkedList<double> Radon222 = new LinkedList<double>();
 
-        //decay constant in years, half life is 3.82 days so it is divided by 365.25 to get years
+        //decay constant in years
         Radon222.Insert(Math.Log(2) / (3.82 / 365.25));
-
         //decay type, 1 is alpha
         Radon222.Insert(1);
-
         //atomic number
         Radon222.Insert(86);
+
+
+        //creates the Polonium210 linked list
+        LinkedList<double> Polonium210 = new LinkedList<double>();
+
+        //decay constant in years
+        Polonium210.Insert(Math.Log(2) / (138.376 / 365.25));
+        //decay type, 1 is alpha
+        Polonium210.Insert(1);
+        //atomic number
+        Polonium210.Insert(84);
+
+
+        //creates the Carbon14 linked list
+        LinkedList<double> Carbon14 = new LinkedList<double>();
+
+        //decay constant in years
+        Carbon14.Insert(Math.Log(2) / 5730.0);
+        //decay type, 2 is beta
+        Carbon14.Insert(2);
+        //atomic number
+        Carbon14.Insert(6);
+
+
+        //creates the Tritium linked list
+        LinkedList<double> Tritium = new LinkedList<double>();
+
+        //decay constant in years
+        Tritium.Insert(Math.Log(2) / 12.32);
+        //decay type, 2 is beta
+        Tritium.Insert(2);
+        //atomic number
+        Tritium.Insert(1);
+
+
+        //creates the Strontium90 linked list
+        LinkedList<double> Strontium90 = new LinkedList<double>();
+
+        //decay constant in years
+        Strontium90.Insert(Math.Log(2) / 28.79);
+        //decay type, 2 is beta
+        Strontium90.Insert(2);
+        //atomic number
+        Strontium90.Insert(38);
+
+
+        //creates the Technetium99m linked list
+        LinkedList<double> Technetium99m = new LinkedList<double>();
+
+        //decay constant in years
+        Technetium99m.Insert(Math.Log(2) / (6.0067 / 24 / 365.25));
+        //decay type, 3 is gamma
+        Technetium99m.Insert(3);
+        //atomic number
+        Technetium99m.Insert(43);
+
+
+        //creates the Barium137m linked list
+        LinkedList<double> Barium137m = new LinkedList<double>();
+
+        //decay constant in years
+        Barium137m.Insert(Math.Log(2) / (2.552 / 60 / 24 / 365.25));
+        //decay type, 3 is gamma
+        Barium137m.Insert(3);
+        //atomic number
+        Barium137m.Insert(56);
+
+
+        //creates the Indium115m linked list
+        LinkedList<double> Indium115m = new LinkedList<double>();
+
+        //decay constant in years
+        Indium115m.Insert(Math.Log(2) / (4.486 / 24 / 365.25));
+        //decay type, 3 is gamma
+        Indium115m.Insert(3);
+        //atomic number
+        Indium115m.Insert(49);
 
 
         //switching based on the desired atom name
         switch (passedAtomname)
         {
             case "Uranium235":
-                {
-                    return Uranium235;
-                }
-            case "Carbon14":
-                {
-                    return Carbon14;
-                }
+                return Uranium235;
+
             case "Radon222":
-                {
-                    return Radon222;
-                }
+                return Radon222;
+
+            case "Polonium210":
+                return Polonium210;
+
+            case "Carbon14":
+                return Carbon14;
+
+            case "Tritium":
+                return Tritium;
+
+            case "Strontium90":
+                return Strontium90;
+
+            case "Technetium99m":
+                return Technetium99m;
+
+            case "Barium137m":
+                return Barium137m;
+
+            case "Indium115m":
+                return Indium115m;
         }
+
         //null case
         return null;
+
     }
 
     //the linkedlist is a list of intigers so this function depacks the decaytype integer into its actual string name
