@@ -464,17 +464,14 @@ public class SelectionBox : Gtk.Window
         }
         public T? ListIndexer(int indexNum)
         {
-            if (indexNum < 0)
-                throw new ArgumentOutOfRangeException(nameof(indexNum));
+           
             LinkedNode<T> current = this.head;
             for (int i = 0; i < indexNum; i++)
             {
-                if (current == null)
-                    throw new ArgumentOutOfRangeException(nameof(indexNum));
+               
                 current = current.next;
             }
-            if (current == null)
-                throw new ArgumentOutOfRangeException(nameof(indexNum));
+           
             return current.data;
         }
         public void DisplayLL(LinkedList<Coordinate> DisplayList)
@@ -891,27 +888,29 @@ static void Draw(object sender, Gtk.DrawnArgs args)
     }
 }
 
-public static void StartDrawing()
-{
-    //checks if the drawing timer is already running
-    if (drawingTimerRunning == true)
-        return;
+        public static void StartDrawing()
+        {
+            //checks if the drawing timer is already running
+            if (drawingTimerRunning == true)
+                return;
 
-    drawingTimerRunning = true;
+            drawingTimerRunning = true;
 
-    //updates the drawing area approximately 60 times per second
-    GLib.Timeout.Add(16, delegate
-    {
+            //updates the drawing area approximately 60 times per second
+            GLib.Timeout.Add(16, DrawingTimer);
+        }
+
         //requests GTK to draw the next frame
-        if (drawingArea != null)
-            drawingArea.QueueDraw();
+        private static bool DrawingTimer()
+        {
+            if (drawingArea != null)
+                drawingArea.QueueDraw();
 
-        //keeps the drawing timer running
-        return true;
-    });
-}
+            //keeps the drawing timer running
+            return true;
+        }
 
-public static void DrawPartic(Cairo.Context cr, LinkedList<Coordinate> unDecayed)
+        public static void DrawPartic(Cairo.Context cr, LinkedList<Coordinate> unDecayed)
 {
     //sets the background colour to black
     cr.SetSourceRGB(0, 0, 0);
