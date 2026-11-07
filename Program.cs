@@ -730,23 +730,25 @@ public class SelectionBox : Gtk.Window
         static LinkedList<Coordinate> drawingAtoms;
         static bool drawingTimerRunning = false;
         static Random generator = new Random();
-
+        //stores the simulation data between timer updates
+        static LinkedList<Coordinate> unDecayed;
+        static LinkedList<Coordinate> allAtoms;
+        static double decayConstant;
+        static double deltaTime;
+        static int AtomNumber;
         //creates a linked list to store all the particles released by decay
         static LinkedList<DecayParticle> DecayedParticels = new LinkedList<DecayParticle>();
         static bool simulationRunning = false;
-        public static void Decaysimulation(int AtomNumber, double decayConstant, double deltaTime)
+        public static void Decaysimulation(int passedAtomNumber, double passedDecayConstant, double passedDeltaTime)
         {
-
-
-
             //creates a new linked list of coordinates to hold the undecayed atoms
-            LinkedList<Coordinate> unDecayed = new LinkedList<Coordinate>();
+            unDecayed = new LinkedList<Coordinate>();
 
             //fills the linked list with the number of atoms
-            unDecayed = FillList(unDecayed, AtomNumber);
+            unDecayed = FillList(unDecayed, passedAtomNumber);
 
             //creates a list to store every atom for drawing
-            LinkedList<Coordinate> allAtoms = new LinkedList<Coordinate>();
+            allAtoms = new LinkedList<Coordinate>();
 
             //copies all the atoms into the drawing list
             LinkedNode<Coordinate> CurrentNode = unDecayed.head;
@@ -757,9 +759,15 @@ public class SelectionBox : Gtk.Window
                 CurrentNode = CurrentNode.next;
             }
 
-            //runs the monte carlo simulation until all atoms have decayed
-            if (simulationRunning || AtomNumber <= 0 || deltaTime <= 0)
+            //stops multiple simulations running at once
+            if (simulationRunning || passedAtomNumber <= 0 || passedDeltaTime <= 0)
                 return;
+
+            //stores the simulation settings
+            AtomNumber = passedAtomNumber;
+            decayConstant = passedDecayConstant;
+            deltaTime = passedDeltaTime;
+
             simulationRunning = true;
 
             //passes the full atom list to the drawing area
@@ -768,15 +776,10 @@ public class SelectionBox : Gtk.Window
             //starts the drawing timer
             StartDrawing();
 
-            //runs the simulation tick and stores the result
-            bool simulationTickResult = SimulationTick(unDecayed, decayConstant, deltaTime, allAtoms, AtomNumber);
-
-            //sets a timer to run the simulation tick every second, () => made it work
-            GLib.Timeout.Add(1000, () => simulationTickResult);
-            
-            
+            //starts the simulation timer
+            GLib.Timeout.Add(1000, SimulationTick);
         }
-        static bool SimulationTick(LinkedList<Coordinate> unDecayed, double decayConstant, double deltaTime, LinkedList<Coordinate> allAtoms, int AtomNumber)
+        static bool SimulationTick()
         {
             Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
 
@@ -784,7 +787,7 @@ public class SelectionBox : Gtk.Window
 
             //runs the monte carlo simulation round
             //and returns the new list of undecayed atoms
-            unDecayed = RunMonteCarloRound(unDecayed,unDecayed.head,decayConstant,deltaTime);
+            unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head, decayConstant, deltaTime);
 
             //updates the drawing list with decayed atoms
             UpdateDrawingList(allAtoms, unDecayed);
