@@ -32,16 +32,14 @@ public class Background : Gtk.Window
 
 public class SelectionBox : Gtk.Window
 {
-
     Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 1, 1000, 1);
-
-
     Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 10000, 1);
 
-    // Add these fields to the SelectionBox class to fix CS0117
-    private RadioButton option1;
-    private RadioButton option2;
-    private RadioButton option3;
+    //stores the isotope selection box
+    private VBox IsotopeBox;
+
+    //stores the currently selected isotope
+    private string selectedIsotope = "Uranium235";
 
     public SelectionBox() : base("Selection Box")
     {
@@ -136,28 +134,49 @@ public class SelectionBox : Gtk.Window
         //creates a frame for the isotope selection
         Frame IsotopeFrame = new Frame("Radioactive Isotope");
 
-        //creates a vertical box for the radio buttons
-        VBox IsotopeBox = new VBox(false, 10);
+        //creates a vertical box for isotope selection
+        VBox IsotopeSelectionBox = new VBox(false, 10);
 
-        // creates first option
-        option1 = new RadioButton("Uranium235");
+        //creates a horizontal box for decay type buttons
+        HBox DecayTypeBox = new HBox(false, 5);
 
-        // creates second option linking with the first
-        option2 = new RadioButton(option1, "Carbon14");
+        //creates the alpha button
+        Button AlphaButton = new Button("Alpha");
 
-        // creates third option linking with the first
-        option3 = new RadioButton(option1, "Radon222");
+        //creates the beta button
+        Button BetaButton = new Button("Beta");
 
-        //has the first option selected by default
-        option1.Active = true;
+        //creates the gamma button
+        Button GammaButton = new Button("Gamma");
 
-        //puts all buttons under the isotope label
-        IsotopeBox.PackStart(option1, false, false, 0);
-        IsotopeBox.PackStart(option2, false, false, 0);
-        IsotopeBox.PackStart(option3, false, false, 0);
+        //puts the decay buttons into the horizontal box
+        DecayTypeBox.PackStart(AlphaButton, true, true, 0);
+        DecayTypeBox.PackStart(BetaButton, true, true, 0);
+        DecayTypeBox.PackStart(GammaButton, true, true, 0);
 
-        //adds radio buttons to the frame
-        IsotopeFrame.Add(IsotopeBox);
+        //puts the decay buttons at the top of the isotope selection
+        IsotopeSelectionBox.PackStart(DecayTypeBox, false, false, 0);
+
+        //creates a vertical box for the isotope radio buttons
+        IsotopeBox = new VBox(false, 10);
+
+        //puts the isotope radio buttons underneath the decay buttons
+        IsotopeSelectionBox.PackStart(IsotopeBox, false, false, 0);
+
+        //links the alpha button to its function
+        AlphaButton.Clicked += AlphaButtonClicked;
+
+        //links the beta button to its function
+        BetaButton.Clicked += BetaButtonClicked;
+
+        //links the gamma button to its function
+        GammaButton.Clicked += GammaButtonClicked;
+
+        //shows alpha isotopes by default
+        ShowIsotopes("Alpha");
+
+        //adds the isotope selection to the frame
+        IsotopeFrame.Add(IsotopeSelectionBox);
 
         //creates start simulation button
         Button SimualtionStart = new Button("SIMULATION START");
@@ -197,34 +216,119 @@ public class SelectionBox : Gtk.Window
 
         //shows everything
         ShowAll();
+    }
 
+    //changes the isotopes displayed to alpha
+    private void AlphaButtonClicked(object sender, EventArgs e)
+    {
+        ShowIsotopes("Alpha");
+    }
+
+    //changes the isotopes displayed to beta
+    private void BetaButtonClicked(object sender, EventArgs e)
+    {
+        ShowIsotopes("Beta");
+    }
+
+    //changes the isotopes displayed to gamma
+    private void GammaButtonClicked(object sender, EventArgs e)
+    {
+        ShowIsotopes("Gamma");
+    }
+
+    //changes the isotopes displayed based on decay type
+    private void ShowIsotopes(string decayType)
+    {
+        //removes the existing isotope radio buttons
+        foreach (Widget child in IsotopeBox.Children)
+        {
+            IsotopeBox.Remove(child);
+            child.Destroy();
+        }
+
+        string[] isotopes;
+
+        //selects the isotopes for the chosen decay type
+        switch (decayType)
+        {
+            case "Alpha":
+                isotopes = new string[]
+                {
+                    "Uranium235",
+                    "Radon222",
+                    "Polonium210"
+                };
+                break;
+
+            case "Beta":
+                isotopes = new string[]
+                {
+                    "Carbon14",
+                    "Tritium",
+                    "Strontium90"
+                };
+                break;
+
+            case "Gamma":
+                isotopes = new string[]
+                {
+                    "Technetium99m",
+                    "Barium137m",
+                    "Indium115m"
+                };
+                break;
+
+            default:
+                return;
+        }
+
+        //creates the isotope radio buttons
+        RadioButton FirstButton = null;
+
+        foreach (string isotope in isotopes)
+        {
+            RadioButton IsotopeButton;
+
+            //creates the first radio button
+            if (FirstButton == null)
+            {
+                IsotopeButton = new RadioButton(isotope);
+                FirstButton = IsotopeButton;
+            }
+            else
+            {
+                //links the radio button to the first button
+                IsotopeButton = new RadioButton(FirstButton, isotope);
+            }
+
+            //stores the selected isotope
+            IsotopeButton.Toggled += delegate
+            {
+                if (IsotopeButton.Active)
+                {
+                    selectedIsotope = isotope;
+                }
+            };
+
+            //puts the isotope radio button into the box
+            IsotopeBox.PackStart(IsotopeButton, false, false, 0);
+        }
+
+        //selects the first isotope by default
+        FirstButton.Active = true;
+
+        //updates the isotope display
+        IsotopeBox.ShowAll();
     }
 
     public string Radiobuttonseleted()
     {
-
-        // Check which radio button is active
-        if (option1.Active)
-        {
-            Console.WriteLine("Option 1 selected");
-            return option1.Label;
-        }
-        else if (option2.Active)
-        {
-            Console.WriteLine("Option 2 selected");
-            return option2.Label;
-        }
-        else if (option3.Active)
-        {
-            Console.WriteLine("Option 3 selected");
-            return option3.Label;
-        }
-        else
-            Console.WriteLine("No option selected");
-        return null;
+        //returns the currently selected isotope
+        Console.WriteLine(selectedIsotope);
+        return selectedIsotope;
     }
 
-    //creates a function to retrive the number of atoms chosen by the user
+    //creates a function to retrieve the number of atoms chosen by the user
     public double GetAtomNumber()
     {
         double atoms;
@@ -240,17 +344,20 @@ public class SelectionBox : Gtk.Window
         Console.WriteLine(deltaTime);
         return deltaTime;
     }
-    //creates a function that was linked to earlier in the code for when the start simulation button is clicked
+
+    //function linked to when the start simulation button is clicked
     private void OnButtonClicked(object sender, EventArgs e)
     {
         //runs the GetAtomNumber function
         int numberOfAtoms = Convert.ToInt32(GetAtomNumber());
+
+        //gets the currently selected isotope
         string optionselcted = Radiobuttonseleted();
+
         //starts the simulation passing it the amount of atoms and list of atom attributes
         StartSimulation(numberOfAtoms, GetAtomLists(optionselcted));
-
-
     }
+   
 
     public void StartSimulation(int passedAtoms, LinkedList<double> passedAtomtype)
     {
@@ -430,8 +537,10 @@ public class SelectionBox : Gtk.Window
         }
     }
 
+
     public class Simulationbox : Gtk.Window
     {
+
         public Simulationbox() : base("Simulation")
         {
 
