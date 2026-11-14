@@ -354,13 +354,17 @@ public class SelectionBox : Gtk.Window
         //gets the currently selected isotope
         string optionselcted = Radiobuttonseleted();
 
+
+
         //starts the simulation passing it the amount of atoms and list of atom attributes
         StartSimulation(numberOfAtoms, GetAtomLists(optionselcted));
+
     }
-   
+
 
     public void StartSimulation(int passedAtoms, LinkedList<double> passedAtomtype)
     {
+
         //takes the decay constant out of the first position in the list
         double decayConstant = passedAtomtype.ListIndexer(0);
 
@@ -372,111 +376,76 @@ public class SelectionBox : Gtk.Window
 
         //runs the simulation passing it the number of atoms and the decay constant
         DecaySimulation.Decaysimulation(passedAtoms, decayConstant, (Math.Log(2) / decayConstant) * GetDeltaTime() / 100.0);
+
     }
 
     //this method will create all the atom type linked lists, pick one and return it
     public LinkedList<double> GetAtomLists(string passedAtomname)
     {
-        //creates the Uranium235 linked list
+        // Uranium 235
         LinkedList<double> Uranium235 = new LinkedList<double>();
 
-        //decay constant in years
-        Uranium235.Insert(Math.Log(2) / 703800000.0);
-        //decay type, 1 is alpha
-        Uranium235.Insert(1);
-        //atomic number
-        Uranium235.Insert(92);
+        Uranium235.Insert(Math.Log(2) / 703800000.0); // Decay constant
+        Uranium235.Insert(1); // Alpha decay
+        Uranium235.Insert(92); // Atomic number
 
-
-        //creates the Radon222 linked list
+        // Radon 222
         LinkedList<double> Radon222 = new LinkedList<double>();
 
-        //decay constant in years
         Radon222.Insert(Math.Log(2) / (3.82 / 365.25));
-        //decay type, 1 is alpha
         Radon222.Insert(1);
-        //atomic number
         Radon222.Insert(86);
 
-
-        //creates the Polonium210 linked list
+        // Polonium 210
         LinkedList<double> Polonium210 = new LinkedList<double>();
 
-        //decay constant in years
         Polonium210.Insert(Math.Log(2) / (138.376 / 365.25));
-        //decay type, 1 is alpha
         Polonium210.Insert(1);
-        //atomic number
         Polonium210.Insert(84);
 
-
-        //creates the Carbon14 linked list
+        // Carbon 14
         LinkedList<double> Carbon14 = new LinkedList<double>();
 
-        //decay constant in years
         Carbon14.Insert(Math.Log(2) / 5730.0);
-        //decay type, 2 is beta
-        Carbon14.Insert(2);
-        //atomic number
+        Carbon14.Insert(2); // Beta decay
         Carbon14.Insert(6);
 
-
-        //creates the Tritium linked list
+        // Tritium
         LinkedList<double> Tritium = new LinkedList<double>();
 
-        //decay constant in years
         Tritium.Insert(Math.Log(2) / 12.32);
-        //decay type, 2 is beta
         Tritium.Insert(2);
-        //atomic number
         Tritium.Insert(1);
 
-
-        //creates the Strontium90 linked list
+        // Strontium 90
         LinkedList<double> Strontium90 = new LinkedList<double>();
 
-        //decay constant in years
         Strontium90.Insert(Math.Log(2) / 28.79);
-        //decay type, 2 is beta
         Strontium90.Insert(2);
-        //atomic number
         Strontium90.Insert(38);
 
-
-        //creates the Technetium99m linked list
+        // Technetium 99m
         LinkedList<double> Technetium99m = new LinkedList<double>();
 
-        //decay constant in years
         Technetium99m.Insert(Math.Log(2) / (6.0067 / 24 / 365.25));
-        //decay type, 3 is gamma
-        Technetium99m.Insert(3);
-        //atomic number
+        Technetium99m.Insert(3); // Gamma decay
         Technetium99m.Insert(43);
 
-
-        //creates the Barium137m linked list
+        // Barium 137m
         LinkedList<double> Barium137m = new LinkedList<double>();
 
-        //decay constant in years
         Barium137m.Insert(Math.Log(2) / (2.552 / 60 / 24 / 365.25));
-        //decay type, 3 is gamma
         Barium137m.Insert(3);
-        //atomic number
         Barium137m.Insert(56);
 
-
-        //creates the Indium115m linked list
+        // Indium 115m
         LinkedList<double> Indium115m = new LinkedList<double>();
 
-        //decay constant in years
         Indium115m.Insert(Math.Log(2) / (4.486 / 24 / 365.25));
-        //decay type, 3 is gamma
         Indium115m.Insert(3);
-        //atomic number
         Indium115m.Insert(49);
 
-
-        //switching based on the desired atom name
+        // Return the list for the selected atom
         switch (passedAtomname)
         {
             case "Uranium235":
@@ -507,9 +476,8 @@ public class SelectionBox : Gtk.Window
                 return Indium115m;
         }
 
-        //null case
+        // Return null if the atom name wasn't found
         return null;
-
     }
 
     //the linkedlist is a list of intigers so this function depacks the decaytype integer into its actual string name
@@ -543,44 +511,60 @@ public class SelectionBox : Gtk.Window
 
         public Simulationbox() : base("Simulation")
         {
-
-            //sets the defult size
+            // Sets the default size
             SetDefaultSize(400, 300);
 
-
-
-            //Creates a new colour
+            // Creates a new colour
             Gdk.Color Black = new Gdk.Color();
 
-            //assigns hex code to colour
+            // Assigns hex code to colour
             Gdk.Color.Parse("#000000", ref Black);
 
-            //adds colour to Simulation window
+            // Adds colour to Simulation window
             ModifyBg(StateType.Normal, Black);
 
-            // Get the screen size and asign values to variables
+            // Gets the screen size and assigns values to variables
             Gdk.Screen screen = Gdk.Screen.Default;
             int scWidth = screen.Width;
             int scHeight = screen.Height;
 
             int panelHeight = scHeight;
 
-            //asign the height of the panel to be the whole length of the users screen
+            // Sets the panel height to the full screen height
             SetDefaultSize((scWidth - 475), panelHeight);
 
-            //moving panel to side of screen
+            // Moves the panel to the side of the screen
             Move(0, 0);
 
-            //creates the drawing area for the simulation
+            // Creates the main vertical box
+            VBox MainBox = new VBox(false, 5);
+
+            // Creates the drawing area for the particle simulation
             Gtk.DrawingArea drawingArea = new Gtk.DrawingArea();
 
-            //adds the drawing area to the simulation window
-            Add(drawingArea);
+            // Creates the drawing area for the graph
+            Gtk.DrawingArea graphArea = new Gtk.DrawingArea();
 
-            //connects the drawing area to the simulation
+            // Sets the graph height
+            graphArea.SetSizeRequest(-1, 250);
+
+            // Adds the particle simulation to the top
+            MainBox.PackStart(drawingArea, true, true, 0);
+
+            // Adds the graph underneath
+            MainBox.PackStart(graphArea, false, true, 0);
+
+            // Adds the main box to the simulation window
+            Add(MainBox);
+
+            // Connects the particle drawing area
             DecaySimulation.DrawingArea(drawingArea);
 
+            // Connects the graph drawing area
+            DecaySimulation.GraphDrawingArea(graphArea);
+
             ShowAll();
+
         }
 
     }
@@ -694,14 +678,14 @@ public class SelectionBox : Gtk.Window
         }
         public T? ListIndexer(int indexNum)
         {
-           
+
             LinkedNode<T> current = this.head;
             for (int i = 0; i < indexNum; i++)
             {
-               
+
                 current = current.next;
             }
-           
+
             return current.data;
         }
         public void DisplayLL(LinkedList<Coordinate> DisplayList)
@@ -850,6 +834,7 @@ public class SelectionBox : Gtk.Window
         static bool simulationRunning = false;
         public static void Decaysimulation(int passedAtomNumber, double passedDecayConstant, double passedDeltaTime)
         {
+
             //creates a new linked list of coordinates to hold the undecayed atoms
             unDecayed = new LinkedList<Coordinate>();
 
@@ -887,9 +872,27 @@ public class SelectionBox : Gtk.Window
 
             //starts the simulation timer
             GLib.Timeout.Add(1000, SimulationTick);
+
+            GraphData = new LinkedList<GraphPoint>();
+
+            elapsedTime = 0;
+            initialAtomNumber = passedAtomNumber;
+            estimatedHalfLife = 0;
+
+            // Adds the starting point to the graph
+            GraphData.Insert(new GraphPoint(0, passedAtomNumber));
+
+            // Calculates the estimated half-life
+            CalculateEstimatedHalfLife();
+
+            // Updates the graph
+            if (graphDrawingArea != null)
+                graphDrawingArea.QueueDraw();
+
         }
         static bool SimulationTick()
         {
+
             Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
 
             unDecayed.DisplayLL(unDecayed);
@@ -905,6 +908,16 @@ public class SelectionBox : Gtk.Window
             unDecayed = SweepList(unDecayed);
 
             AtomNumber = unDecayed.Length(unDecayed);
+
+            // Updates the elapsed simulation time
+            elapsedTime += deltaTime;
+
+            // Adds the latest reading to the graph
+            GraphData.Insert(new GraphPoint(elapsedTime, AtomNumber));
+
+            // Requests the graph to redraw
+            if (graphDrawingArea != null)
+                graphDrawingArea.QueueDraw();
 
             unDecayed.DisplayLL(unDecayed);
 
@@ -1108,34 +1121,36 @@ public class SelectionBox : Gtk.Window
                 }
             }
             return returnList;
+
+
         }
-public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
-{
-    //checks if the atom has decayed
-    if (testingNode.data.decayed == true)
-    {
-        return true;
-    }
+        public static bool IsEmpty(LinkedNode<Coordinate> testingNode)
+        {
+            //checks if the atom has decayed
+            if (testingNode.data.decayed == true)
+            {
+                return true;
+            }
 
-    return false;
-}
-public static void DrawingArea(Gtk.DrawingArea passedDrawingArea)
-{
-    //stores the drawing area from the simulation window
-    drawingArea = passedDrawingArea;
+            return false;
+        }
+        public static void DrawingArea(Gtk.DrawingArea passedDrawingArea)
+        {
+            //stores the drawing area from the simulation window
+            drawingArea = passedDrawingArea;
 
-    //links the drawing function to the drawing area
-    drawingArea.Drawn += Draw;
-}
+            //links the drawing function to the drawing area
+            drawingArea.Drawn += Draw;
+        }
 
-static void Draw(object sender, Gtk.DrawnArgs args)
-{
+        static void Draw(object sender, Gtk.DrawnArgs args)
+        {
             //i dont know why this is needed but it is
             if (drawingAtoms != null)
-    {
-        DrawPartic(args.Cr, drawingAtoms);
-    }
-}
+            {
+                DrawPartic(args.Cr, drawingAtoms);
+            }
+        }
 
         public static void StartDrawing()
         {
@@ -1158,48 +1173,213 @@ static void Draw(object sender, Gtk.DrawnArgs args)
             //keeps the drawing timer running
             return true;
         }
+        // Connects the graph drawing area
+        public static void GraphDrawingArea(Gtk.DrawingArea passedGraphArea)
+        {
+            graphDrawingArea = passedGraphArea;
 
+            // Links the graph drawing function
+            graphDrawingArea.Drawn += DrawGraph;
+        }
+
+        // Draws the graph
+        static void DrawGraph(object sender, Gtk.DrawnArgs args)
+        {
+            Cairo.Context cGraph = args.Cr;
+
+            int width = graphDrawingArea.AllocatedWidth;
+            int height = graphDrawingArea.AllocatedHeight;
+
+            // Sets the background to black
+            cGraph.SetSourceRGB(0, 0, 0);
+            cGraph.Paint();
+
+            // Sets the graph line colour to cyan
+            cGraph.SetSourceRGB(0, 1, 1);
+            cGraph.LineWidth = 2;
+
+            // Sets graph margins
+            double left = 50;
+            double right = width - 20;
+            double top = 20;
+            double bottom = height - 35;
+
+            // Draws the axes
+            cGraph.SetSourceRGB(1, 1, 1);
+            cGraph.LineWidth = 1;
+
+            cGraph.MoveTo(left, top);
+            cGraph.LineTo(left, bottom);
+            cGraph.LineTo(right, bottom);
+            cGraph.Stroke();
+
+            if (GraphData == null || GraphData.head == null)
+                return;
+
+            // Finds the maximum time
+            double maxTime = elapsedTime;
+
+            if (maxTime <= 0)
+                maxTime = 1;
+
+            // Finds the maximum atom count
+            double maxAtoms = initialAtomNumber;
+
+            if (maxAtoms <= 0)
+                maxAtoms = 1;
+
+            // Starts at the first graph point
+            LinkedNode<GraphPoint> CurrentNode = GraphData.head;
+
+            bool firstPoint = true;
+
+            // Draws the graph line
+            cGraph.SetSourceRGB(0, 1, 1);
+            cGraph.LineWidth = 2;
+
+            while (CurrentNode != null)
+            {
+                GraphPoint point = CurrentNode.data;
+
+                // Converts the data into screen coordinates
+                double x = left + (point.Time / maxTime) * (right - left);
+                double y = bottom - ((double)point.Atoms / maxAtoms) * (bottom - top);
+
+                if (firstPoint)
+                {
+                    cGraph.MoveTo(x, y);
+                    firstPoint = false;
+                }
+                else
+                {
+                    cGraph.LineTo(x, y);
+                }
+
+                CurrentNode = CurrentNode.next;
+            }
+            // Displays the estimated half-life
+            cGraph.SetSourceRGB(1, 1, 1);
+            cGraph.SetFontSize(12);
+
+            if (estimatedHalfLife > 0)
+            {
+                cGraph.MoveTo(left, height - 10);
+                cGraph.ShowText("Estimated half-life: " +
+                    estimatedHalfLife.ToString("F2") + " years");
+            }
+            else
+            {
+                cGraph.MoveTo(left, height - 10);
+                cGraph.ShowText("Estimated half-life: Calculating...");
+            }
+            cGraph.Stroke();
+
+            // Draws the graph title
+            cGraph.SetSourceRGB(1, 1, 1);
+            cGraph.SetFontSize(14);
+            cGraph.MoveTo(left, 15);
+            cGraph.ShowText("Radioactive Decay");
+        }
         public static void DrawPartic(Cairo.Context cr, LinkedList<Coordinate> unDecayed)
-{
-    //sets the background colour to black
-    cr.SetSourceRGB(0, 0, 0);
-    cr.Paint();
+        {
+            //sets the background colour to black
+            cr.SetSourceRGB(0, 0, 0);
+            cr.Paint();
 
-    //creates a node starting at the head of the list
-    LinkedNode<Coordinate> CurrentNode = unDecayed.head;
+            //creates a node starting at the head of the list
+            LinkedNode<Coordinate> CurrentNode = unDecayed.head;
 
-    //loops through each atom in the list
-    while (CurrentNode != null)
+            //loops through each atom in the list
+            while (CurrentNode != null)
+            {
+                //gets the coordinates of the current atom
+                Coordinate CurrentCoord = CurrentNode.data;
+
+                //checks if the atom has decayed
+                if (CurrentCoord.decayed == true)
+                {
+                    //sets the colour to red
+                    cr.SetSourceRGB(1, 0, 0);
+                }
+                else
+                {
+                    //sets the colour to blue
+                    cr.SetSourceRGB(0, 0, 1);
+                }
+
+                //creates a rectangle at the atoms coordinates
+                cr.Rectangle(CurrentCoord.x * 15, CurrentCoord.y * 15, 8, 8);
+
+                //draws the atom
+                cr.Fill();
+
+                //moves to the next atom in the list
+                CurrentNode = CurrentNode.next;
+            }
+
+            //draws all the particles released by decay
+            DrawDecay(cr);
+
+        }
+        // Stores the points used to draw the graph
+        static LinkedList<GraphPoint> GraphData = new LinkedList<GraphPoint>();
+
+        // Stores the elapsed simulation time
+        static double elapsedTime = 0;
+
+        // Stores the starting number of atoms
+        static int initialAtomNumber;
+
+        // Stores the estimated half-life
+        static double estimatedHalfLife = 0;
+        // Stores the graph drawing area
+        static Gtk.DrawingArea graphDrawingArea;
+
+        // Calculates the estimated half-life from the graph data
+        static void CalculateEstimatedHalfLife()
+        {
+            // Calculates half of the starting atom count
+            double halfAtoms = initialAtomNumber / 2.0;
+
+            LinkedNode<GraphPoint> CurrentNode = GraphData.head;
+
+            // Moves through the graph readings
+            while (CurrentNode != null && CurrentNode.next != null)
+            {
+                GraphPoint PreviousPoint = CurrentNode.data;
+                GraphPoint NextPoint = CurrentNode.next.data;
+
+                // Checks if the atom count has crossed the half-life point
+                if (PreviousPoint.Atoms > halfAtoms &&
+                    NextPoint.Atoms <= halfAtoms)
+                {
+                    // Calculates how far between the two readings
+                    double fraction = (PreviousPoint.Atoms - halfAtoms) /
+                        (PreviousPoint.Atoms - NextPoint.Atoms);
+
+                    // Interpolates the time between the readings
+                    estimatedHalfLife = PreviousPoint.Time +
+                        fraction * (NextPoint.Time - PreviousPoint.Time);
+
+                    return;
+                }
+
+                CurrentNode = CurrentNode.next;
+            }
+        }
+    }
+
+    public class GraphPoint
     {
-        //gets the coordinates of the current atom
-        Coordinate CurrentCoord = CurrentNode.data;
+        public double Time;
+        public int Atoms;
 
-        //checks if the atom has decayed
-        if (CurrentCoord.decayed == true)
+        public GraphPoint(double time, int atoms)
         {
-            //sets the colour to red
-            cr.SetSourceRGB(1, 0, 0);
-        }
-        else
-        {
-            //sets the colour to blue
-            cr.SetSourceRGB(0, 0, 1);
+            Time = time;
+            Atoms = atoms;
         }
 
-        //creates a rectangle at the atoms coordinates
-        cr.Rectangle(CurrentCoord.x * 15, CurrentCoord.y * 15, 8, 8);
-
-        //draws the atom
-        cr.Fill();
-
-        //moves to the next atom in the list
-        CurrentNode = CurrentNode.next;
     }
-
-    //draws all the particles released by decay
-    DrawDecay(cr);
-}
-    }
-
 }
 
