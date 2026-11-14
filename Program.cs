@@ -5,8 +5,7 @@ using Gtk;
 using Pango;
 using System;
 using System.Reflection.Emit;
-using static SelectionBox;
-using static SelectionBox.Coordinate;
+
 public class Background : Gtk.Window
 {
     public Background() : base("Background")
@@ -32,6 +31,9 @@ public class Background : Gtk.Window
 
 public class SelectionBox : Gtk.Window
 {
+
+    //stores the simulation window
+    private Simulationbox simulationBox;
     Gtk.Scale speedslider = new Gtk.Scale(Orientation.Horizontal, 1, 1000, 1);
     Gtk.Scale atomslider = new Gtk.Scale(Orientation.Horizontal, 0, 10000, 1);
 
@@ -41,8 +43,9 @@ public class SelectionBox : Gtk.Window
     //stores the currently selected isotope
     private string selectedIsotope = "Uranium235";
 
-    public SelectionBox() : base("Selection Box")
+    public SelectionBox(Simulationbox passedSimulationBox) : base("Selection Box")
     {
+        simulationBox = passedSimulationBox;
         SetDefaultSize(400, 300);
 
         //Creates a new colour
@@ -364,7 +367,6 @@ public class SelectionBox : Gtk.Window
 
     public void StartSimulation(int passedAtoms, LinkedList<double> passedAtomtype)
     {
-
         //takes the decay constant out of the first position in the list
         double decayConstant = passedAtomtype.ListIndexer(0);
 
@@ -374,9 +376,18 @@ public class SelectionBox : Gtk.Window
         //takes the atomic number out of the third position
         int atomicNumber = (int)passedAtomtype.ListIndexer(2);
 
-        //runs the simulation passing it the number of atoms and the decay constant
-        DecaySimulation.Decaysimulation(passedAtoms, decayConstant, (Math.Log(2) / decayConstant) * GetDeltaTime() / 100.0);
+        //shows the simulation window
+        simulationBox.ShowAll();
 
+        //makes the simulation window fullscreen
+        simulationBox.Fullscreen();
+
+        //runs the simulation
+        DecaySimulation.Decaysimulation(
+            passedAtoms,
+            decayConstant,
+            (Math.Log(2) / decayConstant) * GetDeltaTime() / 100.0
+        );
     }
 
     //this method will create all the atom type linked lists, pick one and return it
@@ -504,13 +515,14 @@ public class SelectionBox : Gtk.Window
             default: return null;
         }
     }
-
+}
 
     public class Simulationbox : Gtk.Window
     {
-
+        private Simulationbox simulationBox;
         public Simulationbox() : base("Simulation")
         {
+
             // Sets the default size
             SetDefaultSize(400, 300);
 
@@ -573,25 +585,22 @@ public class SelectionBox : Gtk.Window
     {
         static void Main(string[] args)
         {
-
             Application.Init();
 
             // Create the background window
             Background background = new Background();
 
-            // Create the selection window
-            SelectionBox selectionBox = new SelectionBox();
-
             // Create the simulation window
             Simulationbox simulation = new Simulationbox();
+
+            // Create the selection window and pass the simulation window
+            SelectionBox selectionBox = new SelectionBox(simulation);
 
             // Show all windows
             background.Show();
             selectionBox.Show();
-            simulation.Show();
 
             Application.Run();
-
         }
     }
 
@@ -769,20 +778,21 @@ public class SelectionBox : Gtk.Window
 
 
     }
-    public struct Coordinate
-    {
-        public int x;
-        public int y;
+public struct Coordinate
+{
+    public int x;
+    public int y;
 
-        public int id;
-        public bool decayed;
-        public Coordinate(int xpass, int ypass, int idpass)
-        {
-            this.x = xpass;
-            this.y = ypass;
-            this.decayed = false;
-            this.id = idpass;
-        }
+    public int id;
+    public bool decayed;
+    public Coordinate(int xpass, int ypass, int idpass)
+    {
+        this.x = xpass;
+        this.y = ypass;
+        this.decayed = false;
+        this.id = idpass;
+    }
+}
         public class DecayParticle
         {
             //stores the coordinates of the particle
@@ -815,7 +825,7 @@ public class SelectionBox : Gtk.Window
             }
         }
 
-    }
+    
     static class DecaySimulation
     {
         //stores the GTK drawing area and the atoms displayed on it
@@ -829,9 +839,9 @@ public class SelectionBox : Gtk.Window
         static double decayConstant;
         static double deltaTime;
         static int AtomNumber;
-        //creates a linked list to store all the particles released by decay
-        static LinkedList<DecayParticle> DecayedParticels = new LinkedList<DecayParticle>();
-        static bool simulationRunning = false;
+    //creates a linked list to store all the particles released by decay
+    static LinkedList<DecayParticle> DecayedParticels = new LinkedList<DecayParticle>();
+    static bool simulationRunning = false;
         public static void Decaysimulation(int passedAtomNumber, double passedDecayConstant, double passedDeltaTime)
         {
 
@@ -934,6 +944,7 @@ public class SelectionBox : Gtk.Window
         // Recursive Monte Carlo function
         static LinkedList<Coordinate> RunMonteCarloRound(LinkedList<Coordinate> PassedDecayList, LinkedNode<Coordinate> currentNode, double decayConstant, double deltaTime)
         {
+
             //stops when the end of the list is reached
             if (currentNode != null)
             {
@@ -1381,5 +1392,5 @@ public class SelectionBox : Gtk.Window
         }
 
     }
-}
+
 
