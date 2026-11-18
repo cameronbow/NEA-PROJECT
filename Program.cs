@@ -382,7 +382,7 @@ public class SelectionBox : Gtk.Window
         //makes the simulation window fullscreen
         simulationBox.Fullscreen();
 
-        DecaySimulation.Decaysimulation(passedAtoms,decayConstant,GetDeltaTime() / 100.0);
+        DecaySimulation.Decaysimulation(passedAtoms,decayConstant,GetDeltaTime() / 100.0, decaytype);
     }
 
     //this method will create all the atom type linked lists, pick one and return it
@@ -791,33 +791,32 @@ public struct Coordinate
         public class DecayParticle
         {
             //stores the coordinates of the particle
+            public bool absorbed;
             public float x;
             public float y;
-
-            //stores how much the particle moves
-            public float speedX;
+            public string decayType;
+          //stores how much the particle moves
+             public float speedX;
             public float speedY;
 
             //random number generator
             static Random random = new Random();
 
-            //creates a new particle
-            public DecayParticle(float x, float y)
+    //creates a new particle
+          public DecayParticle(float x, float y, string decayType)
             {
-                //sets the starting coordinates
-                this.x = x;
-                this.y = y;
+             absorbed = false;
+            this.x = x;
+            this.y = y;
+            this.decayType = decayType;
 
-                //generates a random angle
-                double angle = random.NextDouble() * 2 * Math.PI;
+            double angle = random.NextDouble() * 2 * Math.PI;
 
-                //sets the speed of the particle
-                float speed = 3;
+            float speed = 3;
 
-                //calculates the movement
-                speedX = (float)(Math.Cos(angle) * speed);
-                speedY = (float)(Math.Sin(angle) * speed);
-            }
+            speedX = (float)(Math.Cos(angle) * speed);
+            speedY = (float)(Math.Sin(angle) * speed);
+             }
         }
 
     
@@ -836,12 +835,16 @@ public struct Coordinate
         static int AtomNumber;
     //creates a linked list to store all the particles released by decay
     static LinkedList<DecayParticle> DecayedParticels = new LinkedList<DecayParticle>();
-    static bool simulationRunning = false;
-        public static void Decaysimulation(int passedAtomNumber, double passedDecayConstant, double passedDeltaTime)
+            static bool simulationRunning = false;
+        public static void Decaysimulation(int passedAtomNumber, double passedDecayConstant, double passedDeltaTime,  string passedDecayType)
         {
+             int barrier1X = 1000;
+             int barrier2X = 1100;
+             int barrier3X = 1200;
+            string decayType = passedDecayType;
 
-            //creates a new linked list of coordinates to hold the undecayed atoms
-            unDecayed = new LinkedList<Coordinate>();
+        //creates a new linked list of coordinates to hold the undecayed atoms
+        unDecayed = new LinkedList<Coordinate>();
 
             //fills the linked list with the number of atoms
             unDecayed = FillList(unDecayed, passedAtomNumber);
@@ -876,7 +879,7 @@ public struct Coordinate
             StartDrawing();
 
             //starts the simulation timer
-            GLib.Timeout.Add(1000, SimulationTick);
+            GLib.Timeout.Add(1000, () => SimulationTick(decayType));
 
             GraphData = new LinkedList<GraphPoint>();
 
@@ -900,8 +903,8 @@ public struct Coordinate
         if (graphDrawingArea != null)
             graphDrawingArea.QueueDraw();
 
-    }
-        static bool SimulationTick()
+             }
+        static bool SimulationTick(string decayType)
         {
 
 
@@ -911,7 +914,7 @@ public struct Coordinate
 
             //runs the monte carlo simulation round
             //and returns the new list of undecayed atoms
-            unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head, decayConstant, deltaTime);
+            unDecayed = RunMonteCarloRound(unDecayed, unDecayed.head, decayConstant, deltaTime, decayType);
 
             //updates the drawing list with decayed atoms
             UpdateDrawingList(allAtoms, unDecayed);
@@ -957,7 +960,7 @@ public struct Coordinate
         }
 
         // Recursive Monte Carlo function
-        static LinkedList<Coordinate> RunMonteCarloRound(LinkedList<Coordinate> PassedDecayList, LinkedNode<Coordinate> currentNode, double decayConstant, double deltaTime)
+        static LinkedList<Coordinate> RunMonteCarloRound(LinkedList<Coordinate> PassedDecayList, LinkedNode<Coordinate> currentNode, double decayConstant, double deltaTime, string decayType)
         {
 
             //stops when the end of the list is reached
@@ -967,21 +970,21 @@ public struct Coordinate
                 if (MonteCarloTestDecay(decayConstant, deltaTime))
                 {
                     //tells the other atoms this one has decayed
-                    BroadcastDecay(currentNode);
+                    BroadcastDecay(currentNode, decayType);
 
                     //marks the atom as removed by setting its coordinates to 0
                     PassedDecayList.RemoveCorrd(currentNode);
                 }
 
                 //moves to the next atom by calling the function again
-                PassedDecayList = RunMonteCarloRound(PassedDecayList, currentNode.next, decayConstant, deltaTime);
+                PassedDecayList = RunMonteCarloRound(PassedDecayList, currentNode.next, decayConstant, deltaTime, decayType);
             }
             return PassedDecayList;
         }
-        static void UpdateDrawingList(
-    LinkedList<Coordinate> allAtoms,
-    LinkedList<Coordinate> unDecayed)
-        {
+            static void UpdateDrawingList(
+            LinkedList<Coordinate> allAtoms,
+            LinkedList<Coordinate> unDecayed)
+            {
             //starts at the head of the undecayed list
             LinkedNode<Coordinate> CurrentNode = unDecayed.head;
 
@@ -1019,48 +1022,57 @@ public struct Coordinate
                 CurrentNode = CurrentNode.next;
             }
         }
-        static void BroadcastDecay(LinkedNode<Coordinate> CurrentNode)
+        static void DrawBarriers(Cairo.Context cr)
+        {
+            cr.SetSourceRGB(0, 1, 0);
+
+            cr.Rectangle(1000, 0, 5, 1000);
+            cr.Rectangle(1100, 0, 5, 1000);
+            cr.Rectangle(1200, 0, 5, 1000);
+
+            cr.Fill();
+        }
+    static void BroadcastDecay(LinkedNode<Coordinate> CurrentNode, string decayType)
         {
             //gets the coordinates of the atom that has decayed
             Coordinate CurrentCoord = CurrentNode.data;
 
-            //creates a new particle at the position of the decayed atom
-            DecayParticle NewParticle = new DecayParticle(
-                CurrentCoord.x * 15,
-                CurrentCoord.y * 15
-            );
+        //creates a new particle at the position of the decayed atom
+        DecayParticle NewParticle = new DecayParticle(CurrentCoord.x * 15,CurrentCoord.y * 15,decayType);
 
             //adds the new particle to the linked list
             DecayedParticels.Insert(NewParticle);
         }
-        public static void DrawDecay(Cairo.Context cr)
+    public static void DrawDecay(Cairo.Context cr)
+    {
+        LinkedNode<DecayParticle> CurrentNode = DecayedParticels.head;
+
+        while (CurrentNode != null)
         {
-            //creates a node starting at the head of the Decayed particles list
-            LinkedNode<DecayParticle> CurrentNode = DecayedParticels.head;
+            DecayParticle CurrentParticle = CurrentNode.data;
 
-            //sets the colour of decayed particles to yellow
-            cr.SetSourceRGB(1, 1, 0);
-
-            //loops through every decayed particle
-            while (CurrentNode != null)
+            if (CurrentParticle.absorbed == false)
             {
-                //gets the current particle
-                DecayParticle CurrentParticle = CurrentNode.data;
+                // Moves the particle
+                CurrentParticle.x += CurrentParticle.speedX;
+                CurrentParticle.y += CurrentParticle.speedY;
 
-                //changes the coordinates to move the particle
-                CurrentParticle.x = CurrentParticle.x + CurrentParticle.speedX;
-                CurrentParticle.y = CurrentParticle.y + CurrentParticle.speedY;
+                // Checks for barrier collisions
+                CheckBarrierCollision(CurrentParticle);
 
-                //creates a rectangle at the particles new coordinates
-                cr.Rectangle(CurrentParticle.x, CurrentParticle.y, 4, 4);
-
-                //draws the decayed particle
-                cr.Fill();
-
-                //moves to the next particle in the list
-                CurrentNode = CurrentNode.next;
+                // Draws the particle if it has not been absorbed
+                if (CurrentParticle.absorbed == false)
+                {
+                    cr.SetSourceRGB(1, 1, 0);
+                    cr.Rectangle(CurrentParticle.x, CurrentParticle.y, 4, 4);
+                    cr.Fill();
+                }
             }
+
+            CurrentNode = CurrentNode.next;
         }
+    
+    }
 
         // tests if an atom decays using monte carlo
         static bool MonteCarloTestDecay(double decayConstant, double ChangeInTime)
@@ -1342,11 +1354,25 @@ public struct Coordinate
                 //moves to the next atom in the list
                 CurrentNode = CurrentNode.next;
             }
+                // Draws barrier 1
+                cr.SetSourceRGB(0, 1, 0);
+                cr.Rectangle(1000, 0, 5, 1000);
+                cr.Fill();
 
-            //draws all the particles released by decay
-            DrawDecay(cr);
+                // Draws barrier 2
+                cr.SetSourceRGB(0, 1, 0);
+                cr.Rectangle(1100, 0, 5, 1000);
+                cr.Fill();
 
-        }
+                // Draws barrier 3
+                cr.SetSourceRGB(0, 1, 0);
+                cr.Rectangle(1200, 0, 5, 1000);
+                cr.Fill();
+
+                DecaySimulation.DrawBarriers(cr);
+                DrawDecay(cr);
+
+    }
         // Stores the points used to draw the graph
         static LinkedList<GraphPoint> GraphData = new LinkedList<GraphPoint>();
 
@@ -1393,7 +1419,33 @@ public struct Coordinate
                 CurrentNode = CurrentNode.next;
             }
         }
+    static void CheckBarrierCollision(DecayParticle particle)
+    {
+        if (particle.absorbed)
+            return;
+
+        // Barrier 1
+        if (particle.x >= 1000)
+        {
+            if (particle.decayType == "Alpha")
+                particle.absorbed = true;
+        }
+
+        // Barrier 2
+        if (particle.x >= 1100)
+        {
+            if (particle.decayType == "Alpha" ||
+                particle.decayType == "Beta")
+                particle.absorbed = true;
+        }
+
+        // Barrier 3
+        if (particle.x >= 1200)
+        {
+            particle.absorbed = true;
+        }
     }
+}
 
     public class GraphPoint
     {
