@@ -382,12 +382,7 @@ public class SelectionBox : Gtk.Window
         //makes the simulation window fullscreen
         simulationBox.Fullscreen();
 
-        //runs the simulation
-        DecaySimulation.Decaysimulation(
-            passedAtoms,
-            decayConstant,
-            (Math.Log(2) / decayConstant) * GetDeltaTime() / 100.0
-        );
+        DecaySimulation.Decaysimulation(passedAtoms,decayConstant,GetDeltaTime() / 100.0);
     }
 
     //this method will create all the atom type linked lists, pick one and return it
@@ -885,23 +880,30 @@ public struct Coordinate
 
             GraphData = new LinkedList<GraphPoint>();
 
-            elapsedTime = 0;
-            initialAtomNumber = passedAtomNumber;
+            Time = 0;
+            StartingAtomNumber = passedAtomNumber;
             estimatedHalfLife = 0;
 
-            // Adds the starting point to the graph
-            GraphData.Insert(new GraphPoint(0, passedAtomNumber));
+        // Adds the latest reading to the graph
+        GraphData.Insert(new GraphPoint(Time, AtomNumber));
 
-            // Calculates the estimated half-life
-            CalculateEstimatedHalfLife();
+        // Calculates the estimated half-life
+        CalculateEstimatedHalfLife();
+        Console.WriteLine("Elapsed time: " + Time);
+        Console.WriteLine("Atoms remaining: " + AtomNumber);
+        Console.WriteLine("Halfway point: " + (StartingAtomNumber / 2.0));
 
-            // Updates the graph
-            if (graphDrawingArea != null)
-                graphDrawingArea.QueueDraw();
+        CalculateEstimatedHalfLife();
 
-        }
+        Console.WriteLine("Estimated half-life: " + estimatedHalfLife);
+        // Requests the graph to redraw
+        if (graphDrawingArea != null)
+            graphDrawingArea.QueueDraw();
+
+    }
         static bool SimulationTick()
         {
+
 
             Console.WriteLine("Number of undecayed atoms: " + AtomNumber);
 
@@ -920,10 +922,10 @@ public struct Coordinate
             AtomNumber = unDecayed.Length(unDecayed);
 
             // Updates the elapsed simulation time
-            elapsedTime += deltaTime;
+            Time += deltaTime;
 
             // Adds the latest reading to the graph
-            GraphData.Insert(new GraphPoint(elapsedTime, AtomNumber));
+            GraphData.Insert(new GraphPoint(Time, AtomNumber));
 
             // Requests the graph to redraw
             if (graphDrawingArea != null)
@@ -931,8 +933,21 @@ public struct Coordinate
 
             unDecayed.DisplayLL(unDecayed);
 
-            //stops the simulation when no atoms remain
-            if (AtomNumber == 0)
+        // Calculates the estimated half-life
+        CalculateEstimatedHalfLife();
+        Console.WriteLine("Elapsed time: " + Time);
+        Console.WriteLine("Atoms remaining: " + AtomNumber);
+        Console.WriteLine("Halfway point: " + (StartingAtomNumber / 2.0));
+
+        CalculateEstimatedHalfLife();
+
+        Console.WriteLine("Estimated half-life: " + estimatedHalfLife);
+        // Requests the graph to redraw
+        if (graphDrawingArea != null)
+            graphDrawingArea.QueueDraw();
+
+        //stops the simulation when no atoms remain
+        if (AtomNumber == 0)
             {
                 simulationRunning = false;
                 return false;
@@ -1228,13 +1243,13 @@ public struct Coordinate
                 return;
 
             // Finds the maximum time
-            double maxTime = elapsedTime;
+            double maxTime = Time;
 
             if (maxTime <= 0)
                 maxTime = 1;
 
             // Finds the maximum atom count
-            double maxAtoms = initialAtomNumber;
+            double maxAtoms = StartingAtomNumber;
 
             if (maxAtoms <= 0)
                 maxAtoms = 1;
@@ -1336,10 +1351,10 @@ public struct Coordinate
         static LinkedList<GraphPoint> GraphData = new LinkedList<GraphPoint>();
 
         // Stores the elapsed simulation time
-        static double elapsedTime = 0;
+        static double Time = 0;
 
         // Stores the starting number of atoms
-        static int initialAtomNumber;
+        static int StartingAtomNumber;
 
         // Stores the estimated half-life
         static double estimatedHalfLife = 0;
@@ -1350,7 +1365,7 @@ public struct Coordinate
         static void CalculateEstimatedHalfLife()
         {
             // Calculates half of the starting atom count
-            double halfAtoms = initialAtomNumber / 2.0;
+            double halfAtoms = StartingAtomNumber / 2.0;
 
             LinkedNode<GraphPoint> CurrentNode = GraphData.head;
 
